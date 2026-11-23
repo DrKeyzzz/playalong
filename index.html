@@ -1,0 +1,1732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play-Along Changes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" href="fonts/PetalumaScript.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&display=swap">
+<style>
+/* Jazz club at night: warm dark room, cream manuscript paper, one brass accent.
+   Hand-lettered "Real Book" font (Petaluma Script) for chords, titles and headings; Inter for everything else. */
+@font-face { font-family: 'PetalumaScript'; src: url('fonts/PetalumaScript.woff2') format('woff2'), url('fonts/PetalumaScript.woff') format('woff'); font-display: swap; }
+:root {
+  --bg: #1c1613;
+  --bg2: #231b17;
+  --panel: #2b221d;
+  --panel2: #342923;
+  --line: #43362d;
+  --fg: #f4ecdc;
+  --muted: #bcae97;
+  --accent: #e3a83f;      /* brass */
+  --accent2: #f2c46a;
+  --accent-ink: #1c140b;
+  --concert: #8cc1de;
+  --eb: #e6ad66;
+  --bb: #9fcb88;
+  --paper: #f7f1e3;
+  --paper-line: #d9ccb0;
+  --ink: #1f1913;
+  --note-on: #c2410c;
+  --jazz: 'PetalumaScript', 'Kalam', 'Comic Sans MS', cursive;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: radial-gradient(1200px 700px at 70% -10%, #2c211a 0%, var(--bg) 60%) fixed, var(--bg); color: var(--fg); font: 16px/1.45 var(--body); overflow-x: hidden; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent2); outline-offset: 2px; }
+a { color: var(--accent2); }
+
+.app { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); height: 100%; }
+.side { border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; padding: 16px; overflow-y: auto; min-width: 0; background: rgba(0,0,0,.14); }
+.side > * { flex-shrink: 0; }
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.brand h1 { margin-right: auto !important; }
+.brand h1 { font: 400 26px/1 var(--jazz); white-space: nowrap; margin: 0; color: var(--accent2); letter-spacing: .01em; }
+.brand h1 a { color: inherit; text-decoration: none; }
+.brand h1 a:hover { color: var(--fg); }
+.nokey { grid-column: 1 / -1; max-width: 640px; font-size: 16px; color: var(--fg); }
+.nokey ol { color: var(--muted); padding-left: 20px; line-height: 1.6; }
+.nokey .keyrow input { padding: 10px 12px; font-size: 15px; }
+.nokey .fine { font-size: 14px; margin-top: 12px; }
+.gear { background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; padding: 3px 8px; font-size: 13px; white-space: nowrap; color: var(--muted); }
+.gear:hover { color: var(--fg); }
+
+/* The three steps */
+.step { border: 1px solid var(--line); border-radius: 14px; background: var(--bg2); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.step.now { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.step-head { display: flex; align-items: center; gap: 10px; }
+.num { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 400 22px/1 var(--jazz); background: var(--panel2); color: var(--muted); border: 1px solid var(--line); }
+.step.now .num { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.step.done .num { background: transparent; color: var(--accent2); border-color: var(--accent); }
+.step-title { font: 400 24px/1.1 var(--jazz); flex: 1; min-width: 0; }
+.step-sum { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.linkbtn { background: none; border: 0; color: var(--accent2); cursor: pointer; padding: 2px 4px; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.step.done.folded .step-body { display: none; }
+
+.btn { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; cursor: pointer; white-space: nowrap; color: var(--fg); }
+.btn:hover { background: var(--panel2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn.primary:hover { background: var(--accent2); }
+.btn.small { padding: 5px 10px; font-size: 14px; }
+.btn.big { width: 100%; padding: 12px 16px; font-size: 17px; white-space: normal; text-align: center; line-height: 1.25; }
+.btn[aria-expanded="true"] { border-color: var(--accent); }
+
+.search, form.paste input { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; width: 100%; color: var(--fg); font-size: 16px; }
+.search::placeholder, form.paste input::placeholder { color: #8d806c; }
+form.paste { display: flex; gap: 8px; }
+form.paste input { flex: 1; min-width: 0; font-size: 14px; padding: 9px 11px; }
+.or { color: var(--muted); font-size: 13px; text-align: center; }
+
+.tunes { display: grid; gap: 6px; max-height: 46vh; overflow-y: auto; padding-right: 2px; }
+.tune { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); text-align: left; cursor: pointer; color: var(--fg); }
+.tune:hover { background: var(--panel2); }
+.tune.on { border-color: var(--accent); }
+.tune b { font: 400 22px/1.1 var(--jazz); display: block; }
+.tune small { color: var(--muted); display: block; font-size: 13px; }
+.tune a { color: var(--accent2); font-size: 13px; text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; white-space: nowrap; }
+.tune a:hover { border-color: var(--accent); }
+.fine { color: var(--muted); font-size: 12px; }
+.fine a { color: var(--muted); }
+
+.video { position: relative; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; overflow: hidden; max-width: 100%; }
+.video > div, .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+.video .empty { display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; font-size: 14px; }
+.vtitle { font-weight: 600; font-size: 14px; }
+.vtitle:empty { display: none; }
+.mismatch { font-size: 14px; background: rgba(194,65,12,.18); border: 1px solid var(--note-on); border-radius: 10px; padding: 8px 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Tonight's set drawer */
+details.set { border: 1px solid var(--line); border-radius: 14px; background: var(--bg2); }
+details.set summary { cursor: pointer; padding: 10px 14px; font: 400 22px/1.2 var(--jazz); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+details.set summary::-webkit-details-marker { display: none; }
+details.set summary::after { content: '\25BE'; font: 16px var(--body); color: var(--muted); }
+details.set[open] summary::after { content: '\25B4'; }
+.setcount { font: 600 13px var(--body); color: var(--muted); margin-left: 8px; }
+.setlist { display: flex; flex-direction: column; gap: 8px; padding: 0 12px 12px; }
+.setlist ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.setlist li { display: flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.setlist li.on { border-color: var(--accent); }
+.setlist li.drag { opacity: .4; }
+.setlist .go { flex: 1; min-width: 0; text-align: left; background: none; border: 0; color: var(--fg); padding: 4px 6px; cursor: pointer; }
+.setlist .go b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 19px/1.15 var(--jazz); }
+.setlist .go small { color: var(--muted); font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setlist .mini { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 7px; width: 28px; height: 28px; cursor: pointer; padding: 0; flex: none; }
+.setlist .mini:hover { color: var(--fg); }
+.setlist .empty-set { color: var(--muted); font-size: 13px; border: 0; }
+.setbtns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.keybox { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--muted); background: var(--bg2); }
+.keybox b { color: var(--fg); font: 400 22px var(--jazz); }
+.keybox p { margin: 6px 0; } .keybox ol { margin: 4px 0; padding-left: 18px; }
+.keyrow { display: flex; gap: 6px; } .keyrow input { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; color: var(--fg); }
+
+/* Performance header: one tidy strip */
+.perf { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; background: rgba(0,0,0,.12); }
+.perf h2 { font: 400 clamp(28px, 2.6vw, 42px)/1 var(--jazz); margin: 0 4px 0 0; color: var(--fg); white-space: nowrap; }
+.status { font: 400 clamp(18px, 1.5vw, 26px)/1 var(--jazz); color: var(--accent2); white-space: nowrap; min-width: 7ch; }
+.spacer { flex: 1; }
+.field { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
+.field select, .field input { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 9px; color: var(--fg); font-size: 15px; }
+.field input { width: 66px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { background: var(--panel); color: var(--muted); border: 0; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.ico { font-size: 1.05em; margin-right: 4px; }
+.popwrap { position: relative; }
+.pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; width: min(380px, 92vw); box-shadow: 0 14px 40px rgba(0,0,0,.5); display: flex; flex-direction: column; gap: 12px; }
+.pop h4 { margin: 0; font: 400 21px/1.1 var(--jazz); color: var(--accent2); }
+.pop .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pop .lbl { color: var(--muted); font-size: 13px; width: 100%; }
+.offset { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 14px; margin: 0; }
+.keys dt { font-weight: 700; }
+.keys dd { margin: 0; color: var(--muted); }
+kbd { background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; font: 600 13px var(--body); }
+.note { color: var(--muted); font-size: 14px; padding: 6px 18px; }
+.note:empty { display: none; }
+
+/* Step 3 hero: one huge count-in button */
+.hero { display: flex; align-items: center; gap: 22px; margin: 12px 14px 0; padding: 14px 20px; border: 1px solid var(--accent); border-radius: 16px; background: linear-gradient(90deg, rgba(227,168,63,.16), rgba(227,168,63,.04)); flex-wrap: wrap; }
+.hero .num { width: 46px; height: 46px; font-size: 30px; background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.hero-text { flex: 1 1 260px; min-width: 0; }
+.hero-text h3 { margin: 0 0 2px; font: 400 clamp(28px, 2.4vw, 40px)/1.05 var(--jazz); }
+.hero-text p { margin: 0; color: var(--muted); font-size: 16px; }
+.countin { display: flex; align-items: center; gap: 18px; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 16px; padding: 14px 26px; cursor: pointer; font: 400 clamp(26px, 2.2vw, 36px)/1 var(--jazz); box-shadow: 0 6px 0 #a3741f; transition: transform .06s, box-shadow .06s; }
+.countin:hover { background: var(--accent2); }
+.countin:active, .countin.hit { transform: translateY(4px); box-shadow: 0 2px 0 #a3741f; }
+.dots { display: flex; gap: 8px; }
+.dots i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--accent-ink); display: block; }
+.dots i.on { background: var(--accent-ink); }
+.hero-side { display: flex; flex-direction: column; gap: 10px; align-items: stretch; flex: 2 1 420px; }
+.hero-second { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.hero-side .or { font: 400 20px var(--jazz); color: var(--muted); }
+.countin.hit1 { justify-content: center; padding: 20px 34px; font-size: clamp(38px, 3.4vw, 60px); gap: 18px; width: 100%; touch-action: manipulation; }
+.pac-paper .pac-target, .pac-paper .pac-target path { fill: var(--accent) !important; stroke: var(--accent); animation: pac-pulse 1s ease-in-out infinite; }
+.pac-paper text.pac-one { font: 400 22px var(--jazz); fill: #b5410c; }
+@keyframes pac-pulse { 50% { opacity: .35; } }
+.locked { position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 60; font: 400 clamp(60px, 7vw, 120px)/1 var(--jazz); color: var(--accent2); text-shadow: 0 4px 30px rgba(0,0,0,.6); pointer-events: none; animation: pac-locked .9s ease-out forwards; }
+@keyframes pac-locked { 0% { opacity: 0; transform: translate(-50%, -40%) scale(.8); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .pac-paper .pac-target { animation: none; } .locked { animation-duration: .01s; } }
+.countin.hit1 kbd { background: rgba(0,0,0,.12); border-color: rgba(0,0,0,.3); color: var(--accent-ink); font-size: 15px; }
+.countin.second { background: var(--panel2); color: var(--fg); box-shadow: 0 6px 0 #1a1310; font-size: clamp(20px, 1.7vw, 28px); padding: 12px 20px; }
+.countin.second:hover { background: var(--line); }
+.countin.second .dots i { border-color: var(--fg); }
+.countin.second .dots i.on { background: var(--fg); }
+
+/* The three parts */
+.pac-npanels { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px 14px 14px; min-height: 0; }
+.pac-npanels[data-view]:not([data-view="all"]) { grid-template-columns: minmax(0, 1fr); }
+.pac-npanel { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.pac-label { font: 400 clamp(20px, 1.6vw, 28px)/1 var(--jazz); margin: 0 0 2px 4px; display: flex; align-items: center; gap: 8px; }
+.pac-label::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.pac-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); font-size: 13px; }
+.pac-concert .pac-label { color: var(--concert); }
+.pac-eb .pac-label { color: var(--eb); }
+.pac-bb .pac-label { color: var(--bb); }
+.pac-strip { display: flex; align-items: baseline; gap: 14px; margin: 0 0 6px 4px; min-height: 1.1em; min-width: 0; }
+.pac-cnow { font: 400 clamp(40px, 4.6vw, 84px)/1 var(--jazz); color: var(--fg); white-space: nowrap; }
+.pac-cnext { color: var(--muted); font: 400 clamp(17px, 1.5vw, 26px)/1.1 var(--jazz); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pac-paper { flex: 1; overflow-y: auto; background: var(--paper); color: var(--ink); border-radius: 6px; padding: 6px; min-height: 0; box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35); }
+.pac-paper svg { display: block; }
+.pac-paper svg, .pac-paper svg path { color: var(--ink); }
+.pac-paper .pac-note-on, .pac-paper .pac-note-on path { fill: var(--note-on) !important; stroke: var(--note-on); }
+.pac-paper.pac-fit { overflow: hidden; display: flex; align-items: flex-start; justify-content: center; }
+
+/* Solos: chord chart on the same paper */
+.pac-solo { flex: 1; overflow-y: auto; background: var(--paper); color: var(--ink); border-radius: 6px; padding: 10px; min-height: 0; container-type: inline-size; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.pac-sgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-left: 3px solid var(--ink); }
+.pac-sbar { position: relative; border-right: 2px solid var(--ink); border-bottom: 1px solid var(--paper-line); min-height: 4.4em; padding: 16px 6px 6px; display: flex; gap: 6px; align-items: flex-start; min-width: 0; }
+.pac-sbar.on { background: var(--note-on); color: #fff; }
+.pac-snum { position: absolute; top: 2px; left: 5px; font-size: 11px; opacity: .5; }
+.pac-schord { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.pac-schord b { font: 400 clamp(16px, 7cqi, 72px)/1.05 var(--jazz); white-space: nowrap; }
+.pac-sbar.two .pac-schord b { font-size: clamp(11px, 3.5cqi, 38px); }
+.pac-sbar.two .pac-schord { overflow: hidden; }
+.pac-schord small { font-size: clamp(10px, 2.5cqi, 22px); opacity: .75; margin-top: 3px; line-height: 1.15; }
+.pac-sbar.two .pac-schord small { font-size: clamp(9px, 1.9cqi, 18px); }
+.pac-schord.carry b { opacity: .4; }
+
+/* Scales: a card per chord on the same cream paper */
+.pac-scales { flex: 1; overflow-y: auto; min-height: 0; padding: 2px; }
+.sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.sc-card { background: var(--paper); color: var(--ink); border-radius: 8px; padding: 10px 12px; border: 3px solid transparent; box-shadow: 0 6px 18px rgba(0,0,0,.3); min-width: 0; }
+.sc-card.on { border-color: var(--note-on); }
+.sc-card.next { border-color: var(--accent); border-style: dashed; }
+.sc-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sc-chord { font: 400 clamp(30px, 2.6vw, 48px)/1 var(--jazz); }
+.sc-name { font: 400 clamp(18px, 1.4vw, 26px)/1.1 var(--jazz); color: #5b4a36; }
+.sc-tag { margin-left: auto; font: 700 12px var(--body); text-transform: uppercase; letter-spacing: .08em; color: var(--note-on); }
+.sc-card.next .sc-tag { color: #9a6a12; }
+.sc-staff { margin: 4px 0 0; overflow: hidden; }
+.sc-staff svg { display: block; max-width: 100%; height: auto; }
+.sc-staff .sc-tone, .sc-staff .sc-tone path { fill: #2f5f86; }
+.sc-staff .sc-guide, .sc-staff .sc-guide path { fill: var(--note-on); }
+.sc-notes { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 400 clamp(20px, 1.5vw, 26px)/1.2 var(--jazz); margin: 2px 0 6px; }
+.sc-notes .tone { color: #2f5f86; font-weight: 700; }
+.sc-notes .guide { color: var(--note-on); }
+.sc-notes sub { font: 700 11px var(--body); margin-left: 1px; }
+.sc-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sc-foot .btn { background: #efe5cf; border-color: #cdbd9c; color: var(--ink); }
+.sc-foot .btn:hover { background: #e7d9bb; }
+.sc-bars { color: #6f5e47; font-size: 13px; }
+.sc-key { font-size: 13px; color: #6f5e47; margin-top: 6px; }
+.sc-key b { color: #2f5f86; } .sc-key i { color: var(--note-on); font-style: normal; font-weight: 700; }
+
+/* In Scales the NOW card says it all, so the small chord strip goes */
+.pac-npanels[data-mode="scales"] .pac-strip { display: none; }
+.tap-live { border-color: var(--accent); color: var(--accent2); font-weight: 700; }
+.tap-live.hit { background: var(--accent); color: var(--accent-ink); }
+.tl-bpm { font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 4px; }
+/* Click-to-sync: chords, notes and bars look clickable */
+.pac-paper .abcjs-note, .pac-paper .abcjs-rest, .pac-paper .abcjs-chord, .pac-paper svg { cursor: pointer; }
+.pac-barhover { position: absolute; pointer-events: none; background: rgba(227,168,63,.18); border: 2px solid rgba(227,168,63,.7); border-radius: 6px; z-index: 2; }
+.pac-barhover.flash { animation: bar-flash .6s ease-out; }
+@keyframes bar-flash { 0% { background: rgba(227,168,63,.75); } 100% { background: rgba(227,168,63,.18); } }
+.pac-paper .abcjs-chord { pointer-events: bounding-box; }
+.pac-paper .abcjs-chord:hover, .pac-paper .abcjs-note:hover path { fill: #a3741f; }
+.pac-sbar { cursor: pointer; }
+.pac-sbar:not(.on):hover { background: rgba(227,168,63,.18); box-shadow: inset 0 -3px 0 var(--accent); }
+/* Top strip groups */
+.grp { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; border-left: 1px solid var(--line); }
+.grp .cap { font: 700 10px var(--body); text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+.grp-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tbox { display: flex; flex-direction: column; min-width: 0; }
+.tbox h2 { margin: 0; }
+.btn.off { opacity: .45; cursor: not-allowed; }
+/* Tooltip bubble */
+.tip { position: fixed; z-index: 100; max-width: 300px; background: #120d0a; color: var(--fg); border: 1px solid var(--accent); border-radius: 10px; padding: 8px 11px; font: 500 14px/1.35 var(--body); box-shadow: 0 10px 30px rgba(0,0,0,.55); pointer-events: none; }
+.tip::before { content: ''; position: absolute; left: var(--ax, 50%); top: -7px; width: 12px; height: 12px; margin-left: -6px; background: #120d0a; border-left: 1px solid var(--accent); border-top: 1px solid var(--accent); transform: rotate(45deg); }
+.tip.above::before { top: auto; bottom: -7px; transform: rotate(225deg); }
+.howto { width: min(460px, 92vw); }
+.howto-steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; font-size: 15px; }
+.howto-steps b { color: var(--accent2); }
+/* My charts + the chart editor */
+.tune.mine { border-style: dashed; }
+.tune .edit { color: var(--accent2); font-size: 13px; text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; margin-left: 4px; }
+.tune { grid-template-columns: 1fr auto auto; }
+.choices { display: grid; gap: 10px; margin-top: 16px; }
+.editor { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+.ed-form { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+.ed-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.ed-fld { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 13px; }
+.ed-fld input, .ed-fld select { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; color: var(--fg); font-size: 16px; }
+.ed-fld input[type=number] { width: 90px; }
+.ed-text { background: var(--paper); color: var(--ink); border: 0; border-radius: 10px; padding: 12px 14px; font: 400 22px/1.45 var(--jazz); resize: vertical; min-height: 180px; }
+.ed-help code { background: var(--panel2); border-radius: 5px; padding: 0 5px; color: var(--fg); }
+.ed-help { font-size: 14px; }
+.ed-msg { color: #ff8a65; font-size: 14px; min-height: 1.2em; }
+.ed-prevhead { font: 700 12px var(--body); text-transform: uppercase; letter-spacing: .14em; color: var(--accent2); }
+.ed-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--paper); color: var(--ink); border-radius: 8px; padding: 8px; border-left: 3px solid var(--ink); }
+.ed-bar { position: relative; border-right: 2px solid var(--ink); border-bottom: 1px solid var(--paper-line); min-height: 3.2em; padding: 15px 6px 4px; min-width: 0; }
+.ed-num { position: absolute; top: 1px; left: 4px; font-size: 10px; opacity: .5; }
+.ed-lab { position: absolute; top: 0; right: 4px; font: 700 10px var(--body); color: #9a6a12; text-transform: uppercase; }
+.ed-chords { display: flex; gap: 8px; flex-wrap: wrap; font: 400 clamp(18px, 1.6vw, 28px)/1.1 var(--jazz); }
+.ed-chords .carry { opacity: .35; }
+.ed-chords .bad { color: #c2410c; text-decoration: underline wavy #c2410c; }
+/* Chart reader */
+.rd-intro { font-size: 16px; margin: 0; max-width: 900px; }
+.rd-intro b { color: var(--accent2); }
+.rd-status { color: var(--muted); }
+.rd-pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.rd-page { position: relative; margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.rd-page img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: contain; background: #000; }
+.rd-page figcaption { font: 400 18px var(--jazz); padding: 4px 8px; }
+.rd-page .mini { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.6); border: 1px solid var(--line); color: var(--fg); border-radius: 7px; width: 28px; height: 28px; cursor: pointer; }
+.ed-notes { font-size: 14px; color: var(--fg); }
+.ed-notes ul { margin: 4px 0 0; padding-left: 20px; color: #ffb38a; }
+.ed-melody { display: flex; gap: 8px; align-items: center; margin-top: 6px; color: var(--accent2); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.only-stage { display: none; }
+body.stage .perf .only-stage { display: inline-flex; }
+.result { position: relative; }
+.result.tried { opacity: .5; }
+.result.current { outline: 2px solid var(--accent); }
+.result .tag { position: absolute; top: 8px; left: 8px; background: var(--accent); color: var(--accent-ink); font: 700 12px var(--body); border-radius: 6px; padding: 2px 7px; }
+.result .notgood { display: inline-block; margin: 8px 10px 0; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+.result .notgood:hover { color: var(--fg); border-color: #c2410c; }
+.auto-tempo .at-meter { font-weight: 600; margin-left: 4px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.auto-tempo.on { border-color: var(--accent); color: var(--accent2); }
+.auto-tempo .at-meter::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: #6b5d4c; vertical-align: 1px; }
+.auto-tempo .at-meter[data-conf="hi"]::before { background: #7ccf6a; }
+.auto-tempo .at-meter[data-conf="mid"]::before { background: #e3a83f; }
+.auto-tempo .at-meter[data-conf="lo"]::before { background: #c2410c; }
+.codebox { display: flex; flex-direction: column; gap: 6px; border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; }
+.codebox[hidden] { display: none; }
+.codebox b { font: 400 22px var(--jazz); color: var(--accent2); }
+.codemsg:empty { display: none; }
+.btn.primary kbd { background: rgba(0,0,0,.12); border-color: rgba(0,0,0,.3); color: var(--accent-ink); }
+
+/* Scales view: NOW big on top, slim NEXT line, compact tune map */
+.pac-scales { display: flex; flex-direction: column; gap: 8px; }
+.pac-scales > * { flex-shrink: 0; }
+.sc-label { font: 700 12px var(--body); text-transform: uppercase; letter-spacing: .14em; color: var(--accent2); margin: 0 0 4px 2px; }
+.sc-now .sc-card { border-color: var(--note-on); padding: 12px 16px; }
+.sc-now .sc-chord { font-size: clamp(52px, 5vw, 110px); }
+.sc-now .sc-name { font-size: clamp(24px, 2.1vw, 42px); }
+.sc-now .sc-notes { font-size: clamp(24px, 2.1vw, 40px); gap: 4px 18px; }
+.sc-now .sc-tag { display: none; }
+.sc-now .sc-staff svg { width: 100%; }
+.sc-flash { animation: sc-in .35s ease-out; }
+@keyframes sc-in { from { opacity: .3; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.sc-nextline { font: 400 clamp(20px, 1.6vw, 30px)/1.2 var(--jazz); color: var(--muted); padding: 6px 12px; border: 1px dashed var(--accent); border-radius: 10px; min-height: 1.9em; }
+.sc-nextline b { color: var(--fg); font-weight: 400; font-size: 1.15em; }
+.sc-maphead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sc-mapgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+.sc-cell { position: relative; background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 10px 4px 4px; font: 400 clamp(14px, 1.05vw, 19px)/1.1 var(--jazz); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sc-cellnum { position: absolute; top: 1px; left: 4px; font: 600 9px var(--body); color: var(--muted); }
+.sc-cell:hover { border-color: var(--accent); }
+.sc-cell.on { background: var(--note-on); border-color: var(--note-on); color: #fff; }
+.sc-cell.on .sc-cellnum { color: #fff; }
+.sc-cell.next { border-color: var(--accent); border-style: dashed; }
+.pac-scales .sc-key { display: none; }
+.sc-legend { font-size: 14px; color: var(--muted); padding: 0 16px 4px; }
+.sc-legend i { color: #e0603a; font-style: normal; font-weight: 700; }
+.sc-legend b { color: #8cc1de; }
+
+/* Chord-scale explorer (no tune needed) */
+.explore { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 14px; gap: 12px; overflow-y: auto; }
+.explore h2 { margin: 0; font: 400 clamp(34px, 3vw, 52px)/1 var(--jazz); color: var(--accent2); }
+.picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.picker .lbl { color: var(--muted); font-size: 14px; margin-right: 4px; min-width: 52px; }
+.picker button { min-width: 52px; padding: 8px 10px; font: 400 22px/1 var(--jazz); }
+.picker button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.ex-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ex-cols .pac-label { margin-bottom: 6px; }
+@media (max-width: 1100px) { .ex-cols { grid-template-columns: minmax(0, 1fr); } }
+
+/* Welcome */
+.welcome { flex: 1; display: grid; place-items: center; padding: 28px; }
+.welcome > div { max-width: 640px; }
+.welcome h2 { font: 400 clamp(40px, 4.4vw, 68px)/1.02 var(--jazz); margin: 0 0 14px; color: var(--accent2); text-wrap: balance; }
+.welcome p { color: var(--muted); margin: 0 0 18px; font-size: 18px; }
+.wsteps { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.wsteps li { display: flex; gap: 14px; align-items: center; font-size: 18px; }
+.wsteps li b { font: 400 26px var(--jazz); color: var(--fg); margin-right: 6px; }
+
+/* Search results */
+.modal { position: fixed; inset: 0; background: rgba(10,7,5,.7); display: grid; place-items: center; z-index: 50; padding: 16px; }
+.modal-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 16px; width: min(1100px, 100%); max-height: 90vh; overflow: auto; padding: 18px 20px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.modal-head h2 { margin: 0; font: 400 32px/1.1 var(--jazz); color: var(--accent2); }
+.results { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 12px; }
+.result { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 0 10px; cursor: pointer; color: var(--fg); overflow: hidden; }
+.result:hover, .result:focus-visible { border-color: var(--accent); }
+.result img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #000; }
+.result b { display: block; padding: 8px 10px 2px; font-size: 14px; line-height: 1.3; }
+.result small { display: block; padding: 0 10px; color: var(--muted); font-size: 12px; }
+.badges { display: flex; gap: 4px; padding: 8px 10px 0; flex-wrap: wrap; }
+.badge { background: var(--accent); color: var(--accent-ink); border-radius: 6px; font-size: 12px; font-weight: 700; padding: 1px 7px; }
+
+/* Left side hidden: music gets the full width. The video stays (same player, still playing) as a small
+   floating mini-player in the bottom-right corner, and a tab on the left edge brings the side back. */
+body.stage .app { grid-template-columns: minmax(0, 1fr); }
+/* Left side hidden: the video docks top-right (or top-left) at a proper size; the music fills the rest. */
+body.stage { --vidw: 400px; }
+body.stage.vid-s { --vidw: 320px; }
+body.stage.vid-l { --vidw: 560px; }
+body.stage .main { padding-right: calc(var(--vidw) + 24px); }
+body.stage.vid-left .main { padding-right: 0; padding-left: calc(var(--vidw) + 24px); }
+/* The video keeps playing but goes out of sight (moved off screen, same player, so the sound doesn't stop). */
+body.stage .side { position: fixed; right: 12px; top: 12px; width: var(--vidw); height: auto; padding: 0; border: 0; background: none; overflow: visible; z-index: 45; }
+body.stage.vid-left .side { right: auto; left: 12px; }
+body.stage .side > :not(#step2) { display: none !important; }
+body.stage #step2 { padding: 0; border: 0; background: none; box-shadow: none; }
+body.stage #step2 > :not(#videoBox):not(#dockCtl) { display: none !important; }
+#dockCtl { display: none; }
+body.stage #dockCtl { display: flex; gap: 6px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+#dockCtl button { background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 8px; padding: 5px 10px; font-size: 13px; cursor: pointer; }
+#dockCtl button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+body.stage #videoBox { box-shadow: 0 10px 30px rgba(0,0,0,.6); border: 2px solid var(--accent); }
+.showside { display: none; }
+body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 46; writing-mode: vertical-rl; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 0 10px 10px 0; padding: 14px 7px; font: 700 14px var(--body); cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.5); }
+.hideside { background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; padding: 3px 8px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.hideside:hover { color: var(--fg); }
+
+
+@media (max-width: 1500px) { .seg button { padding: 8px 10px; } .perf .btn { padding: 8px 11px; } }
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .side { border-right: 0; border-bottom: 1px solid var(--line); }
+  .pac-npanels { grid-template-columns: minmax(0, 1fr); }
+  .pac-npanel { min-height: 70vh; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<button class="showside" id="showSide" type="button" title="Show the left column again (M).">◨ Show the left side</button>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><h1><a href="./" id="home" title="Home: start again with a new tune">Play-Along Changes</a></h1>
+      <button class="hideside" id="hideSide" type="button" hidden title="Hide the left column so the music gets more room (M). The video moves to the top corner.">◧ Hide</button>
+      <button class="gear" id="gear" type="button" title="Settings: the YouTube search key, so play-alongs show up inside the site." aria-label="Settings: YouTube search key" aria-expanded="false">⚙︎ Settings</button></div>
+    <div class="keybox" id="keybox" hidden>
+      <b>YouTube search key</b>
+      <p>With a key, play-alongs show up right here. It's free:</p>
+      <ol>
+        <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener">console.cloud.google.com</a> and create a project.</li>
+        <li>APIs &amp; Services → Library → YouTube Data API v3 → Enable.</li>
+        <li>Credentials → Create credentials → API key.</li>
+        <li>Paste it here.</li>
+      </ol>
+      <p>The key stays in this browser on this computer only.</p>
+      <div class="keyrow"><input id="ytKey" type="password" autocomplete="off" placeholder="Paste key" aria-label="YouTube API key"><button class="btn small primary" id="saveKey" type="button" title="Save the key in this browser. Then Find play-alongs shows results here.">Save</button></div>
+      <div class="fine" id="keyMsg"></div>
+      <div class="codebox" id="codeBox2" hidden>
+        <b style="display:block;margin-top:14px">Class code (the tune book)</b>
+        <div class="keyrow"><input class="classcode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Class code" aria-label="Class code"><button class="btn small primary codego" type="button" title="Open the tune book with the class code.">Open</button></div>
+        <span class="fine codemsg"></span>
+      </div>
+      <b style="display:block;margin-top:14px">Claude key (for reading charts)</b>
+      <p>Lets “Read the chart from the video” turn chart pages into a chord chart. Make one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com → API keys</a>. About 1 to 3 cents per chart. Stays in this browser only.</p>
+      <div class="keyrow"><input id="claudeKey" type="password" autocomplete="off" placeholder="Paste Claude key (sk-ant-…)" aria-label="Claude API key"><button class="btn small primary" id="saveClaude" type="button" title="Save the Claude key in this browser.">Save</button></div>
+      <div class="fine" id="claudeMsg"></div>
+    </div>
+
+    <section class="step now" id="step1" aria-labelledby="s1t">
+      <div class="step-head"><span class="num">1</span><span class="step-title" id="s1t">Pick a tune</span><button class="linkbtn" id="s1change" type="button" hidden title="Pick a different tune from the list.">Change</button></div>
+      <div class="step-sum" id="s1sum" hidden></div>
+      <div class="step-body">
+        <input class="search" id="search" type="search" placeholder="Search tunes or composers" aria-label="Search tunes" autocomplete="off">
+        <div class="tunes" id="tunes"></div>
+        <div class="fine" id="more"></div>
+        <div class="codebox" id="codeBox" hidden>
+          <b>The tune book</b>
+          <span class="fine">671 jazz lead sheets, for class. Type the class code to open them:</span>
+          <div class="keyrow"><input class="classcode" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Class code" aria-label="Class code"><button class="btn small primary codego" type="button" title="Open the tune book with the class code. This browser remembers it.">Open</button></div>
+          <span class="fine codemsg"></span>
+        </div>
+        <button class="linkbtn" id="newChart" type="button" title="Type a chord chart for any song, bar by bar.">✎ Make your own chord chart</button>
+        <div class="fine" id="bookLabel" hidden></div>
+      </div>
+    </section>
+
+    <section class="step" id="step2" aria-labelledby="s2t">
+      <div class="step-head"><span class="num">2</span><span class="step-title" id="s2t">Pick a play-along</span></div>
+      <button class="btn primary big" id="findBtn" type="button" hidden title="Search YouTube for play-along tracks of this tune and pick one.">Find play-alongs</button>
+      <form class="paste" id="pasteForm">
+        <input id="url" type="text" inputmode="url" placeholder="…or paste a YouTube link" aria-label="YouTube link" title="Paste a YouTube link here (or press ⌘V anywhere) and it loads." autocomplete="off">
+        <button class="btn" type="submit" title="Load the YouTube link you pasted.">Load</button>
+      </form>
+      <div class="video" id="videoBox" hidden><div class="empty" id="videoEmpty">Loading the video…</div><div id="player" hidden></div></div>
+      <div id="dockCtl" role="group" aria-label="Video size and place">
+        <button type="button" data-size="s" title="Small video (320 px wide)">Small</button>
+        <button type="button" data-size="m" title="Medium video (400 px wide)">Medium</button>
+        <button type="button" data-size="l" title="Large video (560 px wide)">Large</button>
+        <button type="button" data-side="1" title="Move the video to the other side of the screen">⇄ Other side</button>
+      </div>
+      <div class="vtitle" id="vtitle"></div>
+      <div class="mismatch" id="mismatch" hidden></div>
+    </section>
+
+    <section class="step" id="step3" aria-labelledby="s3t">
+      <div class="step-head"><span class="num">3</span><span class="step-title" id="s3t">Hit on 1</span></div>
+      <div class="step-sum" id="s3sum">Press play, then hit Space on beat 1.</div>
+    </section>
+
+    <details class="set" id="setDrawer">
+      <summary>Tonight's set <span class="setcount" id="setCount"></span></summary>
+      <section class="setlist" aria-label="Tonight's set">
+        <ol id="setlist"></ol>
+        <div class="setbtns">
+          <button class="btn small" id="addSet" type="button" title="Add the video that's playing (and its sync) to tonight's set.">+ Add this tune</button>
+          <button class="btn small" id="copySet" type="button" title="Copy a link to this whole set, to bookmark or share.">Copy set link</button>
+        </div>
+        <input class="search" id="setLink" type="text" readonly hidden aria-label="Set link">
+      </section>
+    </details>
+
+    <p class="fine">Melodies and chords from <a href="https://github.com/veltzer/book-openbook" target="_blank" rel="noopener">OpenBook</a> (classroom use; the tunes keep their copyrights). Chord font: Petaluma Script (SIL OFL). Videos play in YouTube's own player.</p>
+  </aside>
+
+  <div class="modal" id="findModal" hidden role="dialog" aria-modal="true" aria-labelledby="findTitle">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="findTitle">Play-alongs</h2><button class="btn small" id="findClose" type="button" title="Close this panel (Esc).">Close</button></div>
+      <div class="fine" id="findMsg"></div>
+      <div class="results" id="findResults"></div>
+    </div>
+  </div>
+
+  <main class="main" id="main">
+    <div class="welcome" id="welcome"><div>
+      <h2>Any play-along, in Concert, E♭ and B♭ at once.</h2>
+      <p>The whole band reads along, and the big chord shows what to play now and next.</p>
+      <ol class="wsteps">
+        <li><span class="num">1</span><span><b>Pick a tune</b> from the list on the left.</span></li>
+        <li><span class="num">2</span><span><b>Pick a play-along</b> from YouTube.</span></li>
+        <li><span class="num">3</span><span><b>Hit on 1:</b> press play, then hit Space on beat 1.</span></li>
+      </ol>
+      <p style="margin-top:22px"><button class="btn" id="openExplorer" type="button">♩ Chord scales: look up any chord</button></p>
+    </div></div>
+  </main>
+</div>
+
+<script src="abcjs-basic-min.js"></script>
+<script src="chords.js?v=20261121x"></script>
+<script src="notation.js?v=20261121x"></script>
+<script src="library.js?v=20261121x"></script>
+<script src="book.js?v=20261123a"></script>
+<script src="custom.js?v=20261121x"></script>
+<script src="tempo.js?v=20261121x"></script>
+<script src="reader.js?v=20261121x"></script>
+<script>
+(() => {
+  const { Chords, TuneLibrary, Notation, CustomCharts } = window;
+  // My charts (typed by hand) join the book, so search and everything else just works.
+  function upsertTune(rec) {
+    const t = CustomCharts.toTune(rec);
+    const i = TuneLibrary.TUNES.findIndex((x) => x.id === t.id);
+    if (i >= 0) TuneLibrary.TUNES[i] = t; else TuneLibrary.TUNES.push(t);
+    return t;
+  }
+  for (const rec of CustomCharts.all()) upsertTune(rec);
+  const PANELS = ['concert', 'eb', 'bb'];
+  const $ = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  let player = null, ytReady = false, videoId = null, lastTitle = '';
+  let tune = null, nv = null, ui = null;
+
+  // ---------- YouTube player (official embed) ----------
+  function parseId(s) {
+    s = (s || '').trim();
+    const m = s.match(/(?:[?&]v=|youtu\.be\/|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/) || s.match(/^([\w-]{11})$/);
+    return m ? m[1] : null;
+  }
+  window.onYouTubeIframeAPIReady = () => { ytReady = true; if (videoId) createPlayer(videoId); };
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+
+  function createPlayer(id) {
+    document.getElementById('videoBox').hidden = false;
+    document.getElementById('videoEmpty').hidden = true;
+    document.getElementById('player').hidden = false;
+    player = new YT.Player('player', {
+      videoId: id,
+      playerVars: { rel: 0, playsinline: 1 },
+      events: { onReady: checkTitle, onStateChange: checkTitle }
+    });
+  }
+  function loadVideo(id) {
+    // A video found with "Find on YouTube" belongs to the tune you were finding.
+    if (pendingTune) { if (!store.get('tune:' + id)) store.set('tune:' + id, pendingTune); pendingTune = null; }
+    videoId = id;
+    lastTitle = '';
+    const u = new URL(location.href); u.searchParams.set('v', id); history.replaceState(null, '', u);
+    if (ytReady) { if (player && player.loadVideoById) player.loadVideoById(id); else createPlayer(id); }
+    drawSet(); updateSteps();
+    const known = store.get('tune:' + id), kt = known && TuneLibrary.TUNES.find((x) => x.id === known);
+    if (kt) { const it = setlist.find((x) => x.id === id); showTune(kt, (it && it.title) || ''); }
+    let tries = 0; const t = setInterval(() => { checkTitle(); if (++tries > 20 || lastTitle) clearInterval(t); }, 500);
+  }
+  // For testing: window.PAC_DEBUG.nv is the current chart.
+  window.PAC_DEBUG = { get nv() { return nv; } };
+  // window.PAC_TEST_TIME lets a test drive the page without a real video.
+  function videoTime() { if (window.PAC_TEST_TIME != null) return window.PAC_TEST_TIME; return player && player.getCurrentTime ? player.getCurrentTime() : 0; }
+
+  // Title comes from the player itself, so no scraping is needed.
+  function checkTitle() {
+    if (!player || !player.getVideoData) return;
+    const title = (player.getVideoData() || {}).title || '';
+    if (!title || title === lastTitle) return;
+    lastTitle = title;
+    document.getElementById('vtitle').textContent = title;
+    noteVideo(title, null);
+    const chosen = store.get('tune:' + videoId);
+    const fromTitle = TuneLibrary.match(title);
+    const t = (chosen && TuneLibrary.TUNES.find((x) => x.id === chosen)) || fromTitle;
+    if (t) showTune(t, title);
+    else showNoMatch(title);
+    checkMismatch();
+  }
+
+  // ---------- setlist ----------
+  // Saved in this browser; "Copy setlist link" puts the video ids in the address (?set=id1,id2) to share or bookmark.
+  let setlist = store.get('setlist') || [];
+  const setEl = document.getElementById('setlist');
+  const saveSet = () => { store.set('setlist', setlist); drawSet(); };
+  function drawSet() {
+    setEl.textContent = '';
+    document.getElementById('setCount').textContent = setlist.length ? setlist.length + (setlist.length === 1 ? ' tune' : ' tunes') : '';
+    if (!setlist.length) { setEl.append($('li', 'empty-set', 'Load a play-along, then press \u201c+ Add this tune\u201d.')); return; }
+    setlist.forEach((it, i) => {
+      const li = $('li', it.id === videoId ? 'on' : '');
+      li.draggable = true;
+      const go = $('button', 'go'); go.type = 'button';
+      const tid = it.tune || store.get('tune:' + it.id);
+      const tt = tid && TuneLibrary.TUNES.find((x) => x.id === tid);
+      go.append($('b', null, (i + 1) + '. ' + (it.title || 'Video ' + it.id)), $('small', null, tt ? tt.title : 'Tune not chosen yet'));
+      go.onclick = () => openFromSet(it);
+      go.title = 'Open this one, already synced.';
+      const mk = (txt, label, fn) => { const b = $('button', 'mini', txt); b.type = 'button'; b.title = label; b.setAttribute('aria-label', label); b.onclick = fn; return b; };
+      const move = (d) => { const j = i + d; if (j < 0 || j >= setlist.length) return; [setlist[i], setlist[j]] = [setlist[j], setlist[i]]; saveSet(); };
+      li.append(go, mk('\u2191', 'Move up', () => move(-1)), mk('\u2193', 'Move down', () => move(1)), mk('\u00d7', 'Remove from setlist', () => { setlist.splice(i, 1); saveSet(); }));
+      li.ondragstart = (e) => { e.dataTransfer.setData('text/plain', String(i)); li.classList.add('drag'); };
+      li.ondragend = () => li.classList.remove('drag');
+      li.ondragover = (e) => e.preventDefault();
+      li.ondrop = (e) => { e.preventDefault(); const from = +e.dataTransfer.getData('text/plain'); if (isNaN(from) || from === i) return; const [m] = setlist.splice(from, 1); setlist.splice(i, 0, m); saveSet(); };
+      setEl.append(li);
+    });
+  }
+  function openFromSet(it) {
+    if (it.tune && !store.get('tune:' + it.id)) store.set('tune:' + it.id, it.tune);
+    document.getElementById('url').value = 'https://www.youtube.com/watch?v=' + it.id;
+    loadVideo(it.id);
+  }
+  function noteVideo(title, tuneId) { // keep setlist titles and tunes up to date as videos load
+    const it = setlist.find((x) => x.id === videoId);
+    if (!it) return;
+    let changed = false;
+    if (title && it.title !== title) { it.title = title; changed = true; }
+    if (tuneId && it.tune !== tuneId) { it.tune = tuneId; changed = true; }
+    if (changed) saveSet();
+  }
+  document.getElementById('addSet').onclick = () => {
+    if (!videoId) { document.getElementById('vtitle').textContent = 'Load a play-along first, then add it to tonight\u2019s set.'; return; }
+    const it = setlist.find((x) => x.id === videoId);
+    if (it) { it.title = lastTitle || it.title; it.tune = tune ? tune.id : it.tune; }
+    else setlist.push({ id: videoId, title: lastTitle || '', tune: tune ? tune.id : null });
+    saveSet();
+  };
+  document.getElementById('copySet').onclick = async (e) => {
+    const btn = e.currentTarget;
+    if (!setlist.length) return;
+    const u = new URL(location.href); u.search = ''; u.searchParams.set('set', setlist.map((x) => x.id).join(','));
+    const link = u.toString().replace(/%2C/g, ',');
+    const box = document.getElementById('setLink');
+    try { await navigator.clipboard.writeText(link); btn.textContent = 'Link copied'; box.hidden = true; }
+    catch { box.value = link; box.hidden = false; box.focus(); box.select(); btn.textContent = 'Copy the link below'; }
+    setTimeout(() => { btn.textContent = 'Copy set link'; }, 2500);
+  };
+  {
+    const ids = (new URL(location.href).searchParams.get('set') || '').split(',').map((x) => x.trim()).filter((x) => /^[\w-]{11}$/.test(x));
+    if (ids.length) { setlist = ids.map((id) => setlist.find((x) => x.id === id) || { id, title: '', tune: null }); store.set('setlist', setlist); }
+  }
+
+  // ---------- tune list ----------
+  const list = document.getElementById('tunes');
+  const search = document.getElementById('search');
+  const more = document.getElementById('more');
+  const STARTERS = ['autumn_leaves', 'blue_bossa', 'st_thomas', 'watermelon_man', 'cantaloupe_island', 'footprints', 'so_what', 'satin_doll', 'work_song', 'mercy_mercy_mercy'];
+  const fold = (x) => (x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '');
+  // The book (tunes.js) is optional: without it the site still works with your own charts.
+  search.placeholder = TuneLibrary.TUNES.some((t) => !t.custom) ? 'Search ' + TuneLibrary.TUNES.filter((t) => !t.custom).length + ' tunes or composers' : 'Search your charts';
+  document.getElementById('bookLabel').textContent = 'Built-in lead sheets \u00b7 ' + TuneLibrary.TUNES.length + ' tunes';
+  function drawList() {
+    list.textContent = '';
+    const q = fold(search.value).trim();
+    let rows;
+    if (q) {
+      const words = q.split(/\s+/);
+      rows = TuneLibrary.TUNES.filter((t) => { const h = fold(t.title + ' ' + (t.composer || '')); return words.every((w) => h.includes(w)); });
+    } else {
+      rows = TuneLibrary.TUNES.filter((t) => t.custom).concat(STARTERS.map((id) => TuneLibrary.TUNES.find((t) => t.id === id)).filter(Boolean));
+      if (tune && !rows.includes(tune)) rows.unshift(tune);
+    }
+    const shown = rows.slice(0, 40);
+    for (const t of shown) {
+      const row = $('button', 'tune' + (tune && tune.id === t.id ? ' on' : ''));
+      row.type = 'button';
+      const name = $('span'); name.append($('b', null, t.title), $('small', null, (t.composer ? t.composer + ' \u00b7 ' : '') + prettyKey(t.key)));
+      const a = $('a', null, 'Play-alongs \u25b8');
+      a.href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(t.names[t.names.length - 1] + ' play along backing track');
+      a.target = '_blank'; a.rel = 'noopener';
+      a.onclick = (e) => { e.stopPropagation(); if (startFind(t)) e.preventDefault(); };
+      row.append(name, a);
+      if (t.custom) {
+        row.classList.add('mine');
+        const ed = $('a', 'edit', 'Edit \u270e'); ed.href = '#'; ed.title = 'Change the chords of this chart.';
+        ed.onclick = (e) => { e.preventDefault(); e.stopPropagation(); openEditor(CustomCharts.get(t.id)); };
+        row.append(ed);
+      }
+      row.onclick = () => { if (videoId) store.set('tune:' + videoId, t.id); showTune(t, lastTitle); };
+      row.title = 'Open the lead sheet for ' + t.title + '.';
+      a.title = 'Find play-alongs for ' + t.title;
+      list.append(row);
+    }
+    more.textContent = !q ? 'Class favourites. Search to find any of the ' + TuneLibrary.TUNES.length + '.'
+      : rows.length === 0 ? 'No tune matches \u201c' + search.value + '\u201d.'
+      : rows.length > shown.length ? (rows.length - shown.length) + ' more. Keep typing to narrow it down.' : '';
+  }
+  search.addEventListener('input', drawList);
+  const prettyKey = (k) => k.replace(/^([A-G])b/, '$1♭').replace(/^([A-G])#/, '$1♯').replace(/m$/, ' minor');
+
+  // ---------- lead sheet view ----------
+  const main = document.getElementById('main');
+  // Warn when the video's title names a different tune from the one showing (e.g. a Giant Steps video with Blue Bossa).
+  function checkMismatch() {
+    const box = document.getElementById('mismatch');
+    const other = lastTitle && TuneLibrary.match(lastTitle);
+    if (!tune || !other || other.id === tune.id) { box.hidden = true; return; }
+    box.textContent = '';
+    box.append($('span', null, 'This video looks like a different tune: ' + other.title));
+    const sw = $('button', 'btn small', 'Switch to ' + other.title); sw.type = 'button';
+    sw.onclick = () => { store.set('tune:' + videoId, other.id); showTune(other, lastTitle); };
+    box.append(sw);
+    box.hidden = false;
+  }
+  // "Lovely Day (Backing Track) - Bill Withers" -> "Lovely Day"
+  const cleanTitle = (t) => String(t || '').replace(/[\[(][^\])]*[\])]/g, '').split(/\s[-|\u2013\u2014:]\s/)[0].replace(/\b(backing track|play ?along|karaoke|instrumental|jam track)\b/ig, '').replace(/\s+/g, ' ').trim() || 'My chart';
+
+  // ---------- chart editor ----------
+  function openEditor(rec) {
+    rec = Object.assign({ title: 'My chart', meter: '4/4', tempo: 100, text: '' }, rec || {});
+    clearInterval(showTune.timer);
+    main.textContent = '';
+    const ed = $('section', 'editor');
+    const top = $('div', 'perf');
+    const homeB = $('button', 'btn'); homeB.type = 'button'; homeB.innerHTML = '<span class="ico">\u2302</span>Home'; homeB.title = 'Home: leave without saving.'; homeB.onclick = goHome;
+    top.append(homeB, $('h2', null, rec.id ? 'Edit chord chart' : 'Make a chord chart'));
+    const form = $('div', 'ed-form');
+    const fld = (label, el, tip) => { const l = $('label', 'ed-fld'); l.append($('span', null, label), el); if (tip) l.title = tip; return l; };
+    const title = $('input'); title.value = rec.title;
+    const meter = $('select'); for (const m of Object.keys(CustomCharts.METERS)) { const o = $('option', null, m); o.value = m; meter.append(o); } meter.value = rec.meter;
+    const g = rec.root ? { root: rec.root, minor: rec.minor } : CustomCharts.guessKey(rec.text);
+    const root = $('select'); for (const r of ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'C#']) { const o = $('option', null, r.replace('b', '\u266d').replace('#', '\u266f')); o.value = r; root.append(o); } root.value = g.root;
+    const mode = $('select'); for (const [v, n] of [['0', 'major'], ['1', 'minor']]) { const o = $('option', null, n); o.value = v; mode.append(o); } mode.value = g.minor ? '1' : '0';
+    let keyTouched = !!rec.root;
+    root.onchange = mode.onchange = () => { keyTouched = true; };
+    const tempo = $('input'); tempo.type = 'number'; tempo.min = 30; tempo.max = 400; tempo.value = rec.tempo || 100;
+    const row1 = $('div', 'ed-row');
+    row1.append(fld('Title', title, 'The song\u2019s name.'), fld('Time', meter, 'Time signature: beats in a bar.'),
+      fld('Key', root, 'The song\u2019s key at concert pitch (as the video plays it). The Key menu and the E\u266d / B\u266d parts use it.'), fld('\u00a0', mode), fld('Tempo (bpm)', tempo, 'Beats per minute. You can fix it later with Tap tempo.'));
+    const ta = $('textarea', 'ed-text'); ta.value = rec.text; ta.spellcheck = false; ta.rows = 9;
+    ta.placeholder = '[Verse]\n| A | Bm7 | C#m7 | Bm7 | x2\n[Chorus]\n| D | E | C#m7 F#m7 | Bm7 E7 |';
+    ta.title = 'One bar between each | . One or two chords in a bar. % = same as the bar before. [Chorus] on its own line names a section. x2 at the end of a line plays it twice.';
+    const help = $('p', 'fine ed-help');
+    help.innerHTML = 'Chords between bar lines <b>|</b>, one or two per bar. Examples: <code>A</code> <code>Bm7</code> <code>F#m7b5</code> <code>C/E</code> <code>G7sus4</code> <code>Ebmaj7</code>. <code>%</code> = same as before. <code>[Chorus]</code> on its own line names a part. <code>x4</code> at the end of a line repeats it.';
+    const notes = $('div', 'ed-notes');
+    if (rec.unclear && rec.unclear.length) { notes.append($('b', null, 'Check these (Claude wasn\u2019t sure):')); const ul = $('ul'); rec.unclear.forEach((u) => ul.append($('li', null, u))); notes.append(ul); }
+    let keepMelody = !!rec.melodyAbc;
+    if (rec.melodyAbc) {
+      const mrow = $('label', 'ed-melody'); const cb = $('input'); cb.type = 'checkbox'; cb.checked = true; cb.onchange = () => { keepMelody = cb.checked; };
+      mrow.append(cb, ' Keep the melody that was read from the chart (shows in Head)');
+      mrow.title = 'Untick to use just the chords.';
+      notes.append(mrow);
+    }
+    const prevHead = $('div', 'ed-prevhead');
+    const preview = $('div', 'ed-grid');
+    const msg = $('div', 'ed-msg');
+    const draw = () => {
+      const { bars, errors } = CustomCharts.parse(ta.value);
+      preview.textContent = '';
+      let carry = '';
+      bars.forEach((b, i) => {
+        const c = $('div', 'ed-bar');
+        c.append($('span', 'ed-num', String(i + 1)));
+        if (b.label) c.append($('span', 'ed-lab', b.label));
+        const body = $('div', 'ed-chords');
+        if (!b.chords.length && !b.bad.length) body.append($('span', 'carry', carry || '\u2013'));
+        for (const tok of b.toks) {
+          if (tok === '%' || tok === '/' || tok === '-') { if (!b.chords.length) continue; }
+          const okc = b.chords.includes(tok);
+          if (okc || b.bad.includes(tok)) body.append($('span', okc ? 'ok' : 'bad', tok));
+        }
+        if (b.chords.length) carry = b.chords[b.chords.length - 1];
+        c.append(body); preview.append(c);
+      });
+      prevHead.textContent = bars.length ? bars.length + ' bars' : 'The chart appears here as you type.';
+      msg.textContent = errors.length ? 'Can\u2019t read: ' + errors.map((e) => '\u201c' + e.token + '\u201d (line ' + e.line + ')').join(', ') + '. Check the spelling, e.g. Bm7, F#m7b5, C/E.' : '';
+      if (!keyTouched) { const k = CustomCharts.guessKey(ta.value); root.value = k.root; mode.value = k.minor ? '1' : '0'; }
+      saveB.disabled = !bars.some((b) => b.chords.length);
+    };
+    const btns = $('div', 'ed-row');
+    const saveB = $('button', 'btn primary big', 'Save and open'); saveB.type = 'button';
+    saveB.title = 'Save this chart in this browser and open it. It shows up under My charts in step 1.';
+    const cancelB = $('button', 'btn', 'Cancel'); cancelB.type = 'button'; cancelB.onclick = () => { if (tune) showTune(tune, lastTitle); else goHome(); };
+    btns.append(saveB, cancelB);
+    if (rec.id) {
+      const del = $('button', 'btn', 'Delete chart'); del.type = 'button'; del.title = 'Delete this chart from this browser.';
+      del.onclick = () => {
+        if (!confirm('Delete the chart \u201c' + rec.title + '\u201d? This can\u2019t be undone.')) return;
+        try { localStorage.removeItem('custom:' + rec.id); } catch {}
+        const i = TuneLibrary.TUNES.findIndex((x) => x.id === rec.id); if (i >= 0) TuneLibrary.TUNES.splice(i, 1);
+        goHome();
+      };
+      btns.append(del);
+    }
+    saveB.onclick = () => {
+      Object.assign(rec, { title: title.value.trim() || 'My chart', meter: meter.value, root: root.value, minor: mode.value === '1', tempo: +tempo.value || 100, text: ta.value });
+      if (!keepMelody) delete rec.melodyAbc;
+      else if (rec.melodyAbc) { try { const v = ABCJS.parseOnly(rec.melodyAbc)[0]; if (!v || !v.lines || !v.lines.length) delete rec.melodyAbc; } catch { delete rec.melodyAbc; } }
+      delete rec.unclear;
+      if (videoId && !rec.video) rec.video = videoId;
+      CustomCharts.save(rec);
+      const t = upsertTune(rec);
+      if (videoId) store.set('tune:' + videoId, t.id);
+      if (videoId) store.set('key:' + videoId + ':' + t.id, TuneLibrary.tuneKey(t).pc);
+      showTune(t, lastTitle);
+    };
+    ta.oninput = draw;
+    form.append(row1, notes, ta, help, msg, prevHead, preview, btns);
+    ed.append(top, form);
+    main.append(ed);
+    draw();
+    ta.focus();
+  }
+
+  // ---------- read the chart from the video (multi-page) ----------
+  let readerState = null;
+  function openReader() {
+    const forTitle = lastTitle, forTune = tune;
+    clearInterval(showTune.timer);
+    main.textContent = '';
+    const box = $('section', 'editor reader');
+    const top = $('div', 'perf');
+    const homeB = $('button', 'btn'); homeB.type = 'button'; homeB.innerHTML = '<span class="ico">\u2302</span>Home'; homeB.title = 'Home: stop and go back to the start.';
+    top.append(homeB, $('h2', null, 'Read the chart from the video'));
+    const body = $('div', 'ed-form');
+    const intro = $('p', 'rd-intro');
+    intro.innerHTML = '<b>1.</b> Press <b>Share this tab</b>. Chrome asks what to share: pick <b>this tab</b> and press Share. <b>2.</b> Play the video. Each new page of the chart is grabbed as it appears. <b>3.</b> Press <b>Read the chart</b>.';
+    const row = $('div', 'ed-row');
+    const shareB = $('button', 'btn primary', '\u25c9 Share this tab'); shareB.type = 'button';
+    shareB.title = 'Chrome asks to share a tab: pick this tab. Nothing leaves your computer; the page just looks at the video area.';
+    const grabB = $('button', 'btn', '+ Grab this frame'); grabB.type = 'button'; grabB.disabled = true;
+    grabB.title = 'Add what the video shows right now as a page (if a page was missed).';
+    const doneB = $('button', 'btn', '\u25a0 Stop sharing'); doneB.type = 'button'; doneB.disabled = true;
+    doneB.title = 'Stop sharing the tab. The pages you have are kept.';
+    const fileB = $('button', 'btn', 'Add images or a PDF'); fileB.type = 'button';
+    fileB.title = 'Add pages from screenshots, photos or a PDF of the chart. You can also paste a screenshot here with \u2318V.';
+    const fileIn = $('input'); fileIn.type = 'file'; fileIn.accept = 'image/*,application/pdf'; fileIn.multiple = true; fileIn.hidden = true;
+    row.append(shareB, grabB, doneB, fileB, fileIn);
+    const status = $('div', 'ed-msg rd-status', '');
+    const grid = $('div', 'rd-pages');
+    const read = $('div', 'ed-row');
+    const readB = $('button', 'btn primary big', 'Read the chart'); readB.type = 'button'; readB.disabled = true;
+    readB.title = 'Send the pages to Claude, which writes them out as a chord chart (and the melody, if there is one). You check it before saving.';
+    const cost = $('span', 'fine', 'About 1 to 3 cents per chart, on your Claude key (\u2699\ufe0e Settings).');
+    read.append(readB, cost);
+    body.append(intro, row, status, grid, read);
+    box.append(top, body); main.append(box);
+
+    const draw = (pages) => {
+      grid.textContent = '';
+      pages.forEach((p, i) => {
+        const f = $('figure', 'rd-page');
+        const img = $('img'); img.src = p.url; img.alt = 'Page ' + (i + 1);
+        const cap = $('figcaption', null, 'Page ' + (i + 1));
+        const x = $('button', 'mini', '\u00d7'); x.type = 'button'; x.title = 'Remove this page'; x.setAttribute('aria-label', 'Remove page ' + (i + 1));
+        x.onclick = () => collector.remove(i);
+        f.append(img, cap, x); grid.append(f);
+      });
+      if (!pages.length) grid.append($('p', 'fine', 'Pages show up here.'));
+      readB.disabled = !pages.length;
+    };
+    const collector = new ChartReader.PageCollector(draw);
+    readerState = { collector, capture: null };
+    draw([]);
+    const stopShare = () => { if (readerState && readerState.capture) { readerState.capture.stop(); readerState.capture = null; } shareB.disabled = false; grabB.disabled = doneB.disabled = true; };
+    homeB.onclick = () => { stopShare(); readerState = null; goHome(); };
+    shareB.onclick = async () => {
+      const vb = document.getElementById('videoBox');
+      if (!videoId || vb.hidden || !vb.getBoundingClientRect().width) { status.textContent = 'Load the play-along video first (step 2), and keep it on screen.'; return; }
+      document.body.classList.remove('stage');
+      try {
+        readerState.capture = await ChartReader.startTabCapture(collector, () => vb.getBoundingClientRect(), () => { shareB.disabled = false; grabB.disabled = doneB.disabled = true; status.textContent = 'Stopped sharing. ' + collector.pages.length + ' page(s).'; });
+        shareB.disabled = true; grabB.disabled = doneB.disabled = false;
+        status.textContent = 'Watching the video. Press play; pages appear below as the chart changes.';
+        if (player && player.playVideo) try { player.playVideo(); } catch {}
+      } catch (err) { status.textContent = 'Sharing didn\u2019t start (' + (err.message || err) + '). You can add screenshots or a PDF instead.'; }
+    };
+    grabB.onclick = () => readerState && readerState.capture && readerState.capture.grab();
+    doneB.onclick = stopShare;
+    fileB.onclick = () => fileIn.click();
+    fileIn.onchange = async () => {
+      for (const f of fileIn.files) {
+        try { if (/pdf/.test(f.type)) await ChartReader.addPdf(collector, f); else await ChartReader.addImageFile(collector, f); }
+        catch (err) { status.textContent = 'Couldn\u2019t add ' + f.name + ': ' + (err.message || err); }
+      }
+      fileIn.value = '';
+    };
+    readB.onclick = async () => {
+      const key = store.get('claudeKey');
+      if (!key) { status.textContent = 'Add your Claude key first: \u2699\ufe0e Settings (top left).'; document.getElementById('keybox').hidden = false; document.getElementById('claudeKey').focus(); return; }
+      stopShare();
+      readB.disabled = true; status.textContent = 'Reading ' + collector.pages.length + ' page(s)\u2026 this takes about half a minute.';
+      try {
+        const rec = ChartReader.toRecord(await ChartReader.readWithClaude(collector.pages, key));
+        if (!rec.title || rec.title === 'My chart') rec.title = cleanTitle(forTitle);
+        readerState = null;
+        openEditor(rec);
+      } catch (err) { readB.disabled = false; status.textContent = 'Reading didn\u2019t work: ' + String(err.message || err).replace(/<[^>]*>/g, ''); }
+    };
+  }
+
+  function showNoMatch(title) {
+    tune = null; nv = null; drawList(); updateSteps();
+    main.textContent = '';
+    const w = $('div', 'welcome'); const d = $('div');
+    d.append($('h2', null, 'This song isn\u2019t in the book.'));
+    d.append($('p', null, '\u201c' + title + '\u201d didn\u2019t match any tune in the book. Two ways to go on:'));
+    const ch = $('div', 'choices');
+    const mk = $('button', 'btn primary big', '\u270e Make a chord chart for this song'); mk.type = 'button';
+    mk.title = 'Type the chords bar by bar. Then Solos, Scales, the Key menu and syncing all work for this song.';
+    mk.onclick = () => openEditor({ title: cleanTitle(title), meter: '4/4', tempo: TuneLibrary.tempoFromTitle(title) || 100, text: '' });
+    const sb = $('button', 'btn big', '\u2315 Search the book'); sb.type = 'button';
+    sb.title = 'Maybe it\u2019s in the book under another name: search for it in step 1.';
+    sb.onclick = () => { const s1 = document.getElementById('step1'); s1.dataset.open = '1'; updateSteps(); search.focus(); };
+    const rd = $('button', 'btn big', '\u25c9 Read the chart from the video'); rd.type = 'button';
+    rd.title = 'If the video shows the chart (even over several pages), grab each page and let Claude write it out.';
+    rd.onclick = openReader;
+    ch.append(mk, rd, sb); d.append(ch);
+    w.append(d); main.append(w);
+  }
+
+  // ---------- home: back to the start ----------
+  let ui_sideChanged = () => {};
+  let ui_autoTempoStop = () => {};
+  function goHome() {
+    ui_autoTempoStop();
+    document.body.classList.remove('has-tune'); document.getElementById('hideSide').hidden = true;
+    clearInterval(showTune.timer);
+    if (player && player.stopVideo) try { player.stopVideo(); } catch {}
+    tune = null; nv = null; ui = null; videoId = null; lastTitle = ''; pendingTune = null;
+    document.body.classList.remove('stage');
+    history.replaceState(null, '', location.pathname);
+    document.getElementById('url').value = ''; document.getElementById('vtitle').textContent = '';
+    document.getElementById('mismatch').hidden = true;
+    search.value = ''; drawList(); drawSet(); updateSteps();
+    main.textContent = ''; main.append(welcomeEl);
+    document.getElementById('search').focus();
+  }
+  const welcomeEl = document.getElementById('welcome');
+
+  // ---------- chord-scale explorer: any root + quality, in all three parts ----------
+  const EX_ROOTS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const EX_QUALS = [['maj7', 'maj7'], ['6', '6'], ['-7', '-7'], ['-6', '-6'], ['7', '7'], ['7sus4', '7sus4'], ['-7b5', '-7\u266d5'], ['o7', 'o7'],
+    ['7b9', '7\u266d9'], ['7alt', '7alt'], ['7#5', '7\u266f5'], ['7#11', '7\u266f11'], ['maj7#11', 'maj7\u266f11']];
+  function showExplorer() {
+    clearInterval(showTune.timer);
+    main.textContent = '';
+    const ex = $('section', 'explore');
+    const top = $('div', 'perf'); top.style.margin = '-14px -14px 0';
+    const homeB = $('button', 'btn'); homeB.type = 'button'; homeB.innerHTML = '<span class="ico">\u2302</span>Home'; homeB.onclick = goHome;
+    top.append(homeB, $('h2', null, 'Chord scales'));
+    const st = store.get('explore') || { root: 'C', q: '-7' };
+    const rootRow = $('div', 'picker'), qRow = $('div', 'picker');
+    rootRow.append($('span', 'lbl', 'Root')); qRow.append($('span', 'lbl', 'Chord'));
+    const cols = $('div', 'ex-cols');
+    const draw = () => {
+      store.set('explore', st);
+      rootRow.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === st.root)));
+      qRow.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === st.q)));
+      cols.textContent = '';
+      const cards = [];
+      for (const inst of PANELS) {
+        const col = $('div', 'pac-npanel pac-' + inst);
+        const lab = $('div', 'pac-label', Chords.INSTRUMENTS[inst].label);
+        if (Chords.INSTRUMENTS[inst].sub) lab.append($('span', 'pac-sub', ' ' + Chords.INSTRUMENTS[inst].sub));
+        const chord = Chords.pretty(Chords.transposeChord(st.root + st.q, inst));
+        const card = Notation.scaleCard(chord, inst);
+        const key = $('div', 'sc-key'); key.innerHTML = 'Numbers under the notes are the chord tones. <i>3</i> and <i>7</i> (red) are the guide tones.';
+        card.append(key);
+        col.append(lab, card); cols.append(col); cards.push(card);
+      }
+      requestAnimationFrame(() => cards.forEach((c) => c.renderStaff && c.renderStaff(c.clientWidth)));
+    };
+    for (const r of EX_ROOTS) { const b = $('button', 'btn', r.replace('b', '\u266d').replace('#', '\u266f')); b.type = 'button'; b.dataset.v = r; b.onclick = () => { st.root = r; draw(); }; rootRow.append(b); }
+    for (const [v, n] of EX_QUALS) { const b = $('button', 'btn', n); b.type = 'button'; b.dataset.v = v; b.onclick = () => { st.q = v; draw(); }; qRow.append(b); }
+    ex.append(top, rootRow, qRow, cols);
+    main.append(ex);
+    draw();
+  }
+  document.getElementById('openExplorer').onclick = showExplorer;
+  // ---------- the tune book behind the class code (live site) ----------
+  function addBook(tunes) {
+    if (!tunes || !tunes.length) return;
+    const have = new Set(TuneLibrary.TUNES.map((t) => t.id));
+    for (const t of tunes) if (!have.has(t.id)) TuneLibrary.TUNES.push(t);
+    showCodeBoxes();
+    search.placeholder = 'Search ' + TuneLibrary.TUNES.filter((t) => !t.custom).length + ' tunes or composers';
+    drawList();
+    if (videoId && !tune) { lastTitle = ''; checkTitle(); }
+  }
+  function showCodeBoxes() { const need = !Book.loaded(); document.getElementById('codeBox').hidden = !need; document.getElementById('codeBox2').hidden = !need; }
+  document.querySelectorAll('.codebox').forEach((box) => {
+    const inp = box.querySelector('.classcode'), go = box.querySelector('.codego'), msg = box.querySelector('.codemsg');
+    const tryCode = async () => {
+      if (!inp.value.trim()) { inp.focus(); return; }
+      go.disabled = true; msg.textContent = 'Opening\u2026';
+      try { addBook(await Book.unlock(inp.value)); msg.textContent = ''; }
+      catch (e) { msg.textContent = e.message === 'wrong' ? 'That\u2019s not the class code. Check the spelling and try again.' : 'Couldn\u2019t open the book (' + e.message + ').'; }
+      go.disabled = false;
+    };
+    go.onclick = tryCode; inp.onkeydown = (e) => { if (e.key === 'Enter') tryCode(); };
+  });
+  showCodeBoxes();
+  Book.auto().then(addBook).catch(() => {});
+  document.getElementById('newChart').onclick = () => openEditor({ title: cleanTitle(lastTitle), meter: '4/4', tempo: 100, text: '' });
+  document.getElementById('home').onclick = (e) => { e.preventDefault(); goHome(); };
+
+  // ---------- hide / show the left side (music full width) ----------
+  function setSide(hidden) {
+    document.body.classList.toggle('stage', !!hidden);
+    try { localStorage.setItem('stage', hidden ? '1' : ''); } catch {}
+    if (ui && ui.sideChanged) ui.sideChanged();
+  }
+  document.getElementById('hideSide').onclick = () => setSide(true);
+  // Docked video: size (Small/Medium/Large) and side, remembered.
+  function setDock(size, left) {
+    const b = document.body;
+    b.classList.toggle('vid-s', size === 's'); b.classList.toggle('vid-l', size === 'l'); b.classList.toggle('vid-left', !!left);
+    document.querySelectorAll('#dockCtl [data-size]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.size === size)));
+    try { localStorage.setItem('dock', JSON.stringify({ size, left: !!left })); } catch {}
+    if (ui && ui.sideChanged) ui.sideChanged();
+  }
+  let dock = { size: 'm', left: false };
+  try { dock = Object.assign(dock, JSON.parse(localStorage.getItem('dock') || '{}')); } catch {}
+  setDock(dock.size, dock.left);
+  document.querySelectorAll('#dockCtl [data-size]').forEach((x) => { x.onclick = () => { dock.size = x.dataset.size; setDock(dock.size, dock.left); }; });
+  document.querySelector('#dockCtl [data-side]').onclick = () => { dock.left = !dock.left; setDock(dock.size, dock.left); };
+  document.getElementById('showSide').onclick = () => setSide(false);
+
+  // ---------- the three steps (left side) ----------
+  function updateSteps() {
+    const synced = !!(nv && nv.t0 != null);
+    const s = [
+      { el: document.getElementById('step1'), done: !!tune },
+      { el: document.getElementById('step2'), done: !!videoId },
+      { el: document.getElementById('step3'), done: synced }
+    ];
+    const cur = s.findIndex((x) => !x.done);
+    s.forEach((x, i) => { x.el.classList.toggle('done', x.done); x.el.classList.toggle('now', i === cur); });
+    const s1 = document.getElementById('step1');
+    if (tune && !s1.dataset.open) s1.classList.add('folded'); else s1.classList.remove('folded');
+    document.getElementById('s1change').hidden = !tune || !s1.classList.contains('folded');
+    const sum = document.getElementById('s1sum');
+    sum.hidden = !tune || !s1.classList.contains('folded');
+    if (tune) sum.textContent = tune.title + (tune.composer ? ' · ' + tune.composer : '');
+    const fb = document.getElementById('findBtn');
+    fb.hidden = !tune;
+    if (tune) fb.textContent = videoId ? '\u21bb Try another video' : 'Find play-alongs for ' + tune.title;
+    fb.dataset.tip = videoId ? 'Go back to the YouTube results for this tune and pick a different play-along. This one gets marked \u201ctried\u201d.' : 'Search YouTube for play-along tracks of this tune and pick one.';
+    fb.removeAttribute('title');
+    fb.classList.toggle('primary', !videoId);
+    document.getElementById('videoBox').hidden = !videoId;
+    document.getElementById('s3sum').textContent = synced ? 'Following the music.' : videoId ? 'Press play, then hit Space on beat 1.' : 'After the play-along is loaded.';
+  }
+  document.getElementById('s1change').onclick = () => { const s1 = document.getElementById('step1'); s1.dataset.open = '1'; updateSteps(); document.getElementById('search').focus(); };
+  document.getElementById('findBtn').onclick = () => { if (tune) { if (videoId) tryAnother(); else startFind(tune); } };
+
+  function showTune(t, title) {
+    ui_autoTempoStop();
+    tune = t; delete document.getElementById('step1').dataset.open;
+    drawList(); noteVideo(null, t.id); drawSet(); checkMismatch();
+    main.textContent = '';
+    const book = TuneLibrary.tuneKey(t);
+    let key = null, source = '';
+    // Sync is remembered per video + tune: where the song starts in the video, the tempo and the key.
+    const syncKey = videoId ? 'sync:' + videoId + ':' + t.id : null;
+    const savedSync = syncKey ? store.get(syncKey) : null;
+    let saved = videoId != null ? store.get('key:' + videoId + ':' + t.id) : null;
+    if (saved == null && savedSync && savedSync.pc != null) saved = savedSync.pc;
+    if (saved != null) { key = { pc: saved }; source = 'mine'; }
+    const fromTitle = TuneLibrary.keyFromTitle(title);
+    if (!key && fromTitle) { key = fromTitle; source = 'title'; }
+    if (!key) { key = { pc: book.pc, letter: book.letter, acc: book.acc }; source = 'book'; }
+    const shift = TuneLibrary.shiftTo(t, key);
+    const mkBtn = (cls, html, tip) => { const b = $('button', cls); b.type = 'button'; b.innerHTML = html; if (tip) { b.dataset.tip = b.dataset.tipOn = tip; b.setAttribute('aria-description', tip); } return b; };
+
+    // ----- the control strip: three labelled groups (Sync, Sound, View) -----
+    const head = $('header', 'perf');
+    const status = $('span', 'status', '');
+    const group = (cap, ...kids) => { const g = $('div', 'grp'); const c = $('span', 'cap', cap); const r = $('div', 'grp-row'); r.append(...kids); g.append(c, r); return g; };
+    const keyF = $('label', 'field'); keyF.append($('span', 'lbltxt', 'Key'));
+    const keySel = $('select'); keySel.id = 'key'; keySel.setAttribute('aria-label', 'Key');
+    for (const k of TuneLibrary.keyChoices(t)) { const o = $('option', null, k.name); o.value = k.pc; keySel.append(o); }
+    keySel.value = shift.pc; keyF.append(keySel);
+    keyF.title = 'Key: the key the video is in. Every part is written out for it.';
+    const bpmF = $('label', 'field'); bpmF.append($('span', 'lbltxt', 'Tempo'));
+    const bpm = $('input'); bpm.id = 'bpm'; bpm.type = 'number'; bpm.min = 30; bpm.max = 400; bpm.setAttribute('aria-label', 'Tempo in BPM');
+    bpmF.append(bpm, 'bpm');
+    bpmF.title = 'Tempo: beats per minute of the video. Type it, or use Tap tempo.';
+    const speedF = $('label', 'field'); speedF.append($('span', 'lbltxt', 'Speed'));
+    const speed = $('select'); speed.id = 'speed'; speed.setAttribute('aria-label', 'Video speed');
+    for (const [v, n] of [['1', '100%'], ['0.9', '90%'], ['0.75', '75%'], ['0.5', '50%']]) { const o = $('option', null, n); o.value = v; speed.append(o); }
+    speedF.title = 'Speed: slow the video down for practice. The music keeps up by itself.';
+    speed.onchange = () => { if (player && player.setPlaybackRate) player.setPlaybackRate(+speed.value); };
+    speedF.append(speed);
+    // Head = sheet music; Solos = chord chart; Scales = the scale for each chord.
+    const seg = $('span', 'seg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'What to show');
+    const headB = mkBtn('', '♫ Head', 'Head (H): the sheet music for the melody.');
+    const soloB = mkBtn('', '♯ Solos', 'Solos (S): the chord chart, 4 bars a row, with a scale under each chord.');
+    const scaleB = mkBtn('', '♩ Scales', 'Scales (K): the scale for the chord playing now, written out, with play buttons.');
+    seg.append(headB, soloB, scaleB);
+    const viewF = $('label', 'field');
+    const view = $('select'); view.id = 'view'; view.setAttribute('aria-label', 'Which parts to show');
+    for (const [v, n] of [['all', 'All 3 parts'], ['concert', 'Concert only'], ['eb', 'E♭ only'], ['bb', 'B♭ only']]) { const o = $('option', null, n); o.value = v; view.append(o); }
+    viewF.append(view);
+    viewF.title = 'Parts: show all three, or one part big (Concert, E♭ or B♭).';
+    const stage = mkBtn('btn', '<span class="ico">\u25e7</span><span class="bt">Hide left side</span>', 'Hide left side (M): hides the left column so the music gets more room. The video moves to the top corner (Small / Medium / Large under it). Press again, or M, to bring the column back.');
+    const full = mkBtn('btn', '<span class="ico">⛶</span><span class="bt">Full screen</span>', 'Full screen: fill the projector. Press Esc to come back.');
+    const moreWrap = $('span', 'popwrap'), moreB = mkBtn('btn', 'More ▾', 'More: fine-tuning tools (intro bars, nudge the cursor, count in again, add to tonight’s set).');
+    moreB.setAttribute('aria-expanded', 'false');
+    const helpWrap = $('span', 'popwrap'), helpB = mkBtn('btn', 'How it works', 'How it works: the 5 steps and the keys (?).');
+    helpB.setAttribute('aria-expanded', 'false');
+    const homeB = mkBtn('btn', '<span class="ico">⌂</span>Home', 'Home: back to the start to pick another tune. Tonight’s set is kept.');
+    homeB.onclick = goHome;
+    const resetTop = mkBtn('btn', '<span class="ico">↺</span>Reset', 'Reset (R): video back to 0:00 and paused, sync cleared, ready to hit 1 again.');
+    const again = mkBtn('btn primary', 'Hit 1 again', 'Hit 1 again (Space): press on the real bar 1, e.g. after an intro. The chart starts over from bar 1.');
+    again.addEventListener('pointerdown', (e) => { e.preventDefault(); if (again.classList.contains('off')) return; ui.newOne(); });
+    // Tap tempo: tap along on every beat to lock in the tempo, without losing your place.
+    const tapLive = mkBtn('btn tap-live', 'Tap tempo <span class="tl-bpm"></span>', 'Tap tempo (B): tap along on the beat 4+ times to set the speed without losing your place.');
+    let tlTimes = [], tlTimer = null;
+    const tlBpm = tapLive.querySelector('.tl-bpm');
+    const tapLiveHit = () => {
+      if (tapLive.classList.contains('off')) return;
+      const now = videoTime();
+      if (tlTimes.length && now - tlTimes[tlTimes.length - 1] > 2) tlTimes = [];
+      tlTimes.push(now); if (tlTimes.length > 8) tlTimes.shift();
+      tapLive.classList.add('hit'); setTimeout(() => tapLive.classList.remove('hit'), 90);
+      clearTimeout(tlTimer); tlTimer = setTimeout(() => { tlTimes = []; tlBpm.textContent = ''; tlBpm.dataset.locked = ''; }, 2000);
+      if (tlTimes.length < 4) { tlBpm.textContent = 'tapping' + '·'.repeat(tlTimes.length); return; }
+      const wasLocked = tlBpm.dataset.locked === '1';
+      const r = nv.tapTempo(tlTimes);
+      if (!r) { tlBpm.textContent = 'uneven'; return; }
+      bpm.value = Math.round(r.qpm); tlBpm.textContent = 'tapping… ' + Math.round(r.qpm); saveSync(); showOffset();
+      if (!wasLocked) { tlBpm.dataset.locked = '1'; const f = $('div', 'locked', 'Tempo locked: ' + Math.round(r.qpm)); document.body.append(f); setTimeout(() => f.remove(), 950); }
+    };
+    tapLive.addEventListener('pointerdown', (e) => { e.preventDefault(); tapLiveHit(); });
+    const anotherB = mkBtn('btn', '\u21bb Try another video', 'Go back to the YouTube results for this tune and pick a different play-along.');
+    anotherB.onclick = () => tryAnother();
+    anotherB.classList.add('only-stage');
+    // ----- Auto tempo: listen to the video's sound and keep the tempo (and the beat) locked -----
+    const autoB = mkBtn('btn auto-tempo', '\u266a Auto tempo <span class="at-meter">Off</span>', 'Auto tempo: listens to the video (Chrome shares this tab\u2019s sound) and finds the beat, so the tempo locks by itself and can\u2019t drift. Show it bar 1 once (Hit on 1 or click a bar). Nothing is recorded or sent anywhere.');
+    const atMeter = autoB.querySelector('.at-meter');
+    const priorBpm = TuneLibrary.tempoFromTitle(title) || t.tempo || 120;
+    let atListener = null, atLocked = false;
+    // Seconds the shared sound runs behind the picture. The cursor nudges change it while Auto tempo is on,
+    // so a nudge sticks instead of being pulled back. Remembered.
+    let LAT = 0.08; try { const v = parseFloat(localStorage.getItem('atLat')); if (isFinite(v)) LAT = v; } catch {}
+    const atStop = (msg) => {
+      if (atListener) { atListener.stop(); atListener = null; AutoTempo.TabShare.release('tempo'); }
+      autoB.classList.remove('on'); atMeter.textContent = msg || 'Off'; atMeter.dataset.conf = '';
+    };
+    const atEstimate = (est) => {
+      if (!nv || !atListener) return;
+      const good = est.conf >= 0.75;
+      atMeter.dataset.conf = good ? 'hi' : est.conf >= 0.5 ? 'mid' : 'lo';
+      if (!good) { atMeter.textContent = 'listening\u2026 no steady beat yet'; return; }
+      atMeter.textContent = Math.round(est.bpm) + ' bpm';
+      const playing = window.PAC_TEST_TIME != null || !!(player && player.getPlayerState && player.getPlayerState() === 1);
+      if (!playing) return;
+      const vtNow = videoTime();
+      // tempo: ease toward the heard tempo, keeping your place
+      const target = est.bpm, cur = nv.qpm;
+      if (!atLocked) {
+        // First lock: the place you showed it (Hit on 1 / a bar click) is the truth; re-count from there,
+        // since the old tempo may already have slid the cursor off.
+        const a = (nv.syncPts || [])[(nv.syncPts || []).length - 1];
+        nv.retempoKeep(target, vtNow);
+        if (a && nv.t0 != null) nv.t0 = a.vt - (a.bars * nv.barMs) / 1000;
+      } else if (Math.abs(target - cur) / cur > 0.004) nv.retempoKeep(cur + 0.5 * (target - cur), vtNow);
+      atLocked = true;
+      bpm.value = Math.round(nv.qpm);
+      // beat: gently pull the cursor onto the heard beats
+      if (nv.t0 != null) {
+        const beatVideo = est.beatAudioTime + (vtNow - est.audioNow) - LAT;
+        const pos = ((beatVideo - nv.t0) * 1000) / nv.beatMs();
+        const err = pos - Math.round(pos);
+        if (Math.abs(err) < 0.4) nv.t0 += (err * nv.beatMs() / 1000) * 0.35;
+        saveSync();
+      }
+    };
+    autoB.onclick = async () => {
+      if (atListener) { atStop(); return; }
+      atMeter.textContent = 'asking Chrome\u2026';
+      try {
+        const stream = await AutoTempo.TabShare.get('tempo', true);
+        if (!stream.getAudioTracks().length) { AutoTempo.TabShare.release('tempo'); atStop('no sound shared: share again and leave \u201cAlso share tab audio\u201d ticked'); return; }
+        atListener = new AutoTempo.Listener(new MediaStream(stream.getAudioTracks()), { prior: () => (atLocked ? nv.qpm : priorBpm), onEstimate: atEstimate });
+        await atListener.start();
+        autoB.classList.add('on'); atLocked = false; atMeter.textContent = 'listening\u2026';
+        AutoTempo.TabShare.onStop = () => atStop();
+      } catch (err) { atStop('didn\u2019t start (' + (err.message || err) + ')'); }
+    };
+    ui_autoTempoStop = () => atStop();
+    const titleBox = $('div', 'tbox'); titleBox.append($('h2', null, t.title), status);
+    head.append(homeB, titleBox, anotherB, $('span', 'spacer'),
+      group('Sync', again, tapLive, autoB, resetTop),
+      group('Sound', keyF, bpmF, speedF),
+      group('View', seg, viewF, stage, full),
+      moreWrap, helpWrap);
+
+    // ----- More menu: the rarely used things (nothing here is on the strip too) -----
+    const morePop = $('div', 'pop'); morePop.hidden = true;
+    const syncRow = $('div', 'row'); syncRow.append($('span', 'lbl', 'Fix the sync'));
+    const tap = mkBtn('btn small', 'Line up on this bar 1 <kbd>Enter</kbd>', 'Press on any beat 1: lines the chart up with the nearest bar line and fine-tunes the tempo. Keeps your place.');
+    const recount = mkBtn('btn small', 'Count in again <kbd>C</kbd>', 'Start over with a count-in: tap along with the 4 clicks before the melody.');
+    // Kept for the code paths below; the Reset button on the strip does both of these.
+    const reset = mkBtn('btn small', 'Reset sync');
+    const forget = mkBtn('btn small', 'Forget saved sync');
+    syncRow.append(tap, recount);
+    const nudgeRow = $('div', 'row'); nudgeRow.append($('span', 'lbl', 'Nudge the cursor to match the video'));
+    const offset = $('span', 'offset', '');
+    const showOffset = () => { const o = (nv && nv.offsetMs) || 0; offset.textContent = o ? (o > 0 ? '+' : '−') + (Math.abs(o) / 1000).toFixed(2) + ' s' : ''; };
+    const doNudge = (ms) => {
+      if (!nv.nudge(ms)) { heroP.textContent = 'Hit 1 first, then nudge the cursor.'; return; }
+      if (autoB.classList.contains('on') && Math.abs(ms) < nv.beatMs() / 2) { LAT += ms / 1000; try { localStorage.setItem('atLat', String(LAT)); } catch {} }
+      showOffset(); saveSync();
+    };
+    for (const [label, title, fn] of [
+      ['◀ Beat', 'Cursor back one beat (Shift + ←).', () => -nv.beatMs()],
+      ['− Earlier', 'Cursor a little earlier, 0.05 s (←).', () => -50],
+      ['+ Later', 'Cursor a little later, 0.05 s (→).', () => 50],
+      ['Beat ▶', 'Cursor forward one beat (Shift + →).', () => nv.beatMs()],
+    ]) { const b = mkBtn('btn small', label, title); b.textContent = label; b.onclick = () => doNudge(fn()); nudgeRow.append(b); }
+    nudgeRow.append(offset);
+    const setRow = $('div', 'row');
+    const addSetB = mkBtn('btn small', '+ Add to tonight’s set', 'Save this video and tune to tonight’s set (left side), with its sync.');
+    addSetB.onclick = () => { document.getElementById('addSet').click(); document.getElementById('setDrawer').open = true; closePops(); };
+    setRow.append(addSetB);
+    const introRow = $('div', 'row'); introRow.append($('span', 'lbl', 'Intro bars before the melody'));
+    const introIn = $('input', 'btn small'); introIn.type = 'number'; introIn.min = 0; introIn.max = 64; introIn.value = store.get('intro:' + videoId + ':' + t.id) || 0;
+    introIn.style.width = '70px'; introIn.setAttribute('aria-label', 'Intro bars');
+    introIn.title = 'Intro bars: if the video has an intro, put its length here, then hit Space when the intro starts. Bar 1 begins that many bars later.';
+    introIn.onchange = () => { if (videoId) store.set('intro:' + videoId + ':' + t.id, Math.max(0, Math.round(+introIn.value || 0))); };
+    introRow.append(introIn, 'bars');
+    const chartRow = $('div', 'row'); chartRow.append($('span', 'lbl', 'My charts (typed by hand)'));
+    const editB = mkBtn('btn small', '\u270e Edit this chart', 'Change the chords of this chart.');
+    editB.onclick = () => { closePops(); openEditor(CustomCharts.get(t.id)); };
+    editB.hidden = !t.custom;
+    const newB = mkBtn('btn small', '+ New chart', 'Type a chord chart for a song that isn\u2019t in the book.');
+    newB.onclick = () => { closePops(); openEditor({ title: cleanTitle(lastTitle), tempo: Math.round(nv.qpm) }); };
+    const expB = mkBtn('btn small', 'Export', 'Download all my charts as one file (to back them up or move them to another computer).');
+    expB.onclick = () => {
+      const blob = new Blob([CustomCharts.exportJson()], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'my-charts.json'; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    };
+    const impB = mkBtn('btn small', 'Import', 'Load charts from a file made with Export.');
+    const impIn = $('input'); impIn.type = 'file'; impIn.accept = '.json,application/json'; impIn.hidden = true;
+    impB.onclick = () => impIn.click();
+    impIn.onchange = async () => {
+      const f = impIn.files && impIn.files[0]; if (!f) return;
+      try { const n = CustomCharts.importJson(await f.text()); for (const r of CustomCharts.all()) upsertTune(r); drawList(); heroP.textContent = n + ' chart' + (n === 1 ? '' : 's') + ' imported.'; impB.textContent = n + ' imported'; }
+      catch { impB.textContent = 'Not a charts file'; }
+    };
+    const readB2 = mkBtn('btn small', '\u25c9 Read the chart from the video', 'Grab each page of the chart shown in the video and let Claude write it out.');
+    readB2.onclick = () => { closePops(); openReader(); };
+    chartRow.append(editB, newB, readB2, expB, impB, impIn);
+    morePop.append(syncRow, introRow, nudgeRow, setRow, chartRow);
+    moreWrap.append(moreB, morePop);
+
+    const helpPop = $('div', 'pop howto'); helpPop.hidden = true;
+    helpPop.innerHTML = '<h4>How it works</h4><ol class="howto-steps">'
+      + '<li><b>Pick a tune</b> on the left.</li>'
+      + '<li><b>Pick a play-along</b>: Find play-alongs, or paste a YouTube link (⌘V).</li>'
+      + '<li><b>Press play</b>, then hit <kbd>Space</kbd> on beat 1 of the melody. Wrong 1? Hit <kbd>Space</kbd> again.</li>'
+      + '<li><b>Out of step?</b> Click any bar when the band gets there. Or turn on <b>Auto tempo</b>: it listens to the video and keeps the beat locked.</li>'
+      + '<li><b>Soloing?</b> <kbd>S</kbd> for the chord chart, <kbd>K</kbd> for scales, <kbd>H</kbd> back to the melody.</li></ol>'
+      + '<p class="fine">More keys: <kbd>M</kbd> hide/show the left side \u00b7 <kbd>P</kbd> pause · <kbd>R</kbd> reset · <kbd>Enter</kbd> line up on a bar 1 · <kbd>←</kbd> <kbd>→</kbd> nudge · <kbd>[</kbd> <kbd>]</kbd> a bar · <kbd>C</kbd> count-in · <kbd>?</kbd> this panel</p>';
+    helpWrap.append(helpB, helpPop);
+    const closePops = () => { morePop.hidden = helpPop.hidden = true; moreB.setAttribute('aria-expanded', 'false'); helpB.setAttribute('aria-expanded', 'false'); };
+    const togglePop = (pop, b) => { const open = pop.hidden; closePops(); pop.hidden = !open; b.setAttribute('aria-expanded', String(open)); };
+    moreB.onclick = (e) => { e.stopPropagation(); togglePop(morePop, moreB); };
+    helpB.onclick = (e) => { e.stopPropagation(); togglePop(helpPop, helpB); };
+    morePop.onclick = helpPop.onclick = (e) => e.stopPropagation();
+    document.onclick = closePops;
+
+    // ----- step 3: one huge count-in button -----
+    const hero = $('section', 'hero');
+    const heroText = $('div', 'hero-text');
+    const heroP = $('p');
+    heroText.append($('h3', null, 'Hit on 1'), heroP);
+    const count = $('button', 'countin'); count.type = 'button';
+    count.title = 'Tap with the last 4 clicks before the melody (or press C).';
+    const countLbl = $('span', null, 'Tap the count-in'), dots = $('span', 'dots');
+    count.append(countLbl, dots);
+    const heroSide = $('div', 'hero-side');
+    // The simplest way: hit one big button right on beat 1 of the first full bar.
+    const tap2 = $('button', 'countin hit1'); tap2.type = 'button';
+    tap2.title = 'Hit it right on beat 1 of the first full bar (Space or Enter)';
+    tap2.append($('span', null, 'Hit on 1'), $('kbd', null, 'Space'));
+    const orc = $('span', 'or', 'or tap along with the count-in:');
+    count.classList.add('second');
+    const second = $('div', 'hero-second'); second.append(orc, count);
+    heroSide.append(tap2, second);
+    hero.append($('span', 'num', '3'), heroText, heroSide);
+    const note = $('div', 'note', '');
+
+    const panels = $('div', 'pac-npanels');
+    const legend = $('div', 'sc-legend'); legend.hidden = true;
+    legend.innerHTML = 'Numbers under the notes are the chord tones. <i>Red = 3rd &amp; 7th: aim for these.</i> <b>Blue</b> = root and 5th.';
+    main.append(head, hero, note, legend, panels);
+
+    nv = new Notation.NotationView({ abc: t.abc, title: t.title, tempo_bpm: TuneLibrary.tempoFromTitle(title) || t.tempo }, panels, PANELS, Chords.INSTRUMENTS, shift);
+    // Click-to-sync: the chart asks us whether the video is playing and what time it is.
+    nv.now = videoTime;
+    nv.isPlaying = () => window.PAC_TEST_TIME != null || !!(player && player.getPlayerState && player.getPlayerState() === 1);
+    nv.onSync = (where) => {
+      bpm.value = Math.round(nv.qpm); saveSync(); setNote(); showOffset(); syncChanged();
+      const tempoMsg = nv.tempoChanged ? ', tempo set to ' + Math.round(nv.qpm) : ''; nv.tempoChanged = false;
+      const f = $('div', 'locked', 'Synced: ' + where + tempoMsg); document.body.append(f); setTimeout(() => f.remove(), 950);
+    };
+    let restored = false;
+    if (savedSync && savedSync.t0 != null && savedSync.qpm > 20) {
+      nv.restoreSync(savedSync.t0, savedSync.qpm);
+      restored = true; forget.hidden = false;
+    }
+    bpm.value = Math.round(nv.qpm);
+    const drawDots = (n) => { dots.textContent = ''; for (let i = 0; i < nv.beatsPerBar(); i++) { const d = $('i'); if (i < n) d.className = 'on'; dots.append(d); } };
+    drawDots(0);
+    const noMelody = t.custom && !t.melody;
+    if (noMelody) { headB.classList.add('off'); headB.dataset.tip = headB.dataset.tipOn = 'No melody for this song, just chords. Use Solos or Scales.'; }
+    const setView = (v) => {
+      if (noMelody && v === 'head') v = 'solo';
+      nv.setView(v);
+      headB.setAttribute('aria-pressed', String(nv.view === 'head')); soloB.setAttribute('aria-pressed', String(nv.view === 'solo')); scaleB.setAttribute('aria-pressed', String(nv.view === 'scales'));
+      store.set('view', nv.view);
+      legend.hidden = nv.view !== 'scales';
+      panels.dataset.mode = nv.view;
+    };
+    headB.onclick = () => setView('head'); soloB.onclick = () => setView('solo'); scaleB.onclick = () => setView('scales');
+    setView(store.get('view') || 'head');
+    let saveTimer = null;
+    const saveSync = () => {
+      restored = false;
+      if (!syncKey || nv.t0 == null) return;
+      forget.hidden = false;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => store.set(syncKey, { t0: nv.t0, qpm: nv.qpm, pc: +keySel.value }), 400);
+    };
+    forget.onclick = () => {
+      clearTimeout(saveTimer);
+      try { localStorage.removeItem(syncKey); } catch {}
+      forget.hidden = true; restored = false; setNote();
+    };
+    let keySource = source;
+    let noteKey = '';
+    const setNote = () => {
+      const synced = nv.t0 != null;
+      const keyTip = keySource === 'book' ? 'Check the key matches the video. ' : '';
+      heroP.textContent = 'Press play. Hit Space on the 1 where the melody starts (marked in the music). Wrong 1? Just hit Space again. P = pause.';
+      noteKey = keyTip + (synced && restored ? 'Synced from last time. ' : '');
+      keyF.dataset.tip = 'Key: the key the video is in. Every part is written out for it. ' + (keySource === 'title' ? '(Read from the video title.)' : keySource === 'book' ? '(This is the book\u2019s key: check it against the video.)' : '(Your choice.)');
+    };
+    setNote();
+
+    keySel.onchange = () => {
+      const pc = +keySel.value;
+      if (videoId) store.set('key:' + videoId + ':' + t.id, pc);
+      if (nv.t0 != null) saveSync();
+      nv.setShift(TuneLibrary.shiftTo(t, { pc }));
+      keySource = 'mine'; setNote();
+    };
+    bpm.onchange = () => { nv.setTempo(+bpm.value); saveSync(); };
+    view.onchange = () => {
+      panels.dataset.view = view.value;
+      panels.querySelectorAll('.pac-npanel').forEach((p) => { p.hidden = view.value !== 'all' && !p.classList.contains('pac-' + view.value); });
+      nv.render();
+    };
+    // Count-in taps: collect them, then work out tempo and where bar 1 starts.
+    let cTimes = [], cTimer = null;
+    const finishCount = () => {
+      clearTimeout(cTimer); cTimer = null;
+      const times = cTimes; cTimes = [];
+      countLbl.textContent = 'Tap the count-in'; drawDots(0);
+      if (times.length < 3) { if (times.length) heroP.textContent = 'Tap at least 3 clicks of the count-in.'; return; }
+      const r = nv.countIn(times);
+      if (!r) { heroP.textContent = 'Taps were uneven, try again.'; return; }
+      bpm.value = Math.round(r.qpm);
+      saveSync(); setNote(); showOffset(); syncChanged();
+    };
+    const countTap = () => {
+      cTimes.push(videoTime());
+      countLbl.textContent = String(cTimes.length); drawDots(cTimes.length);
+      count.classList.add('hit'); setTimeout(() => count.classList.remove('hit'), 90);
+      clearTimeout(cTimer);
+      if (cTimes.length >= nv.beatsPerBar() && cTimes.length >= 3) { setTimeout(finishCount, 120); return; }
+      cTimer = setTimeout(finishCount, 1500);
+    };
+    count.onclick = countTap;
+    // "THIS is bar 1": a fresh start every time (after an intro or a wrong guess). Intro bars (under More) push bar 1 later.
+    const newOne = () => {
+      cTimes = []; clearTimeout(cTimer); countLbl.textContent = 'Tap the count-in'; drawDots(0); nv.reset();
+      hitOne();
+      const intro = Math.max(0, Math.round(+introIn.value || 0));
+      if (intro) { nv.nudge(-intro * nv.barMs); nv.offsetMs = 0; showOffset(); saveSync(); }
+    };
+    const flashLocked = () => { const f = $('div', 'locked', 'Locked: bar 1'); document.body.append(f); setTimeout(() => f.remove(), 950); };
+    const isPlaying = () => window.PAC_TEST_TIME != null || !!(player && player.getPlayerState && player.getPlayerState() === 1);
+    const hitOne = () => {
+      const first = nv.t0 == null;
+      tapBar1();
+      if (first) { flashLocked(); if (!isPlaying() && player && player.playVideo) try { player.playVideo(); } catch {} }
+    };
+    const tapBar1 = () => { tap2.classList.add('hit'); setTimeout(() => tap2.classList.remove('hit'), 90); nv.tap(videoTime()); bpm.value = Math.round(nv.qpm); saveSync(); setNote(); showOffset(); syncChanged(); };
+    tap.onclick = tapBar1;
+    // pointerdown, not click: fires the instant the button goes down, so the hit lands on the beat.
+    tap2.addEventListener('pointerdown', (e) => { e.preventDefault(); hitOne(); });
+    tap2.onkeydown = (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); if (!e.repeat) ui.newOne(); } };
+    // While not synced, clicking anywhere on the music also hits 1.
+    panels.addEventListener('pointerdown', (e) => { if (nv.t0 == null && nv.view === 'head' && e.target.closest('.pac-paper')) { e.preventDefault(); hitOne(); } });
+    const resetSync = () => { cTimes = []; clearTimeout(cTimer); countLbl.textContent = 'Tap the count-in'; drawDots(0); nv.reset(); setNote(); showOffset(); syncChanged(); };
+    reset.onclick = resetSync;
+    // Reset: video back to 0:00 and paused, sync cleared (and forgotten), back to Head, count-in ready again.
+    resetTop.onclick = () => {
+      if (player && player.seekTo) try { player.pauseVideo(); player.seekTo(0, true); } catch {}
+      resetSync(); forget.onclick(); setView('head');
+      note.textContent = 'Reset. Press play, then hit Space on beat 1.';
+      count.focus();
+    };
+    recount.onclick = () => { resetSync(); closePops(); count.focus(); };
+    const syncChanged = () => { hero.hidden = nv.t0 != null; again.hidden = nv.t0 == null; updateSteps(); };
+    ui = { count: countTap, tap: tapBar1, nudge: doNudge, beatMs: () => nv.beatMs(), barMs: () => nv.barMs,
+      toggleView: () => setView(nv.view === 'solo' ? 'head' : 'solo'), setView, help: () => togglePop(helpPop, helpB), reset: () => resetTop.click(), toggleSide: () => stage.click(), sideChanged: () => ui_sideChanged(),
+      hit: hitOne, synced: () => nv.t0 != null, playing: isPlaying, tapLive: tapLiveHit,
+      // Space while playing: "THIS is bar 1", a fresh start every time (e.g. after an intro or a false start).
+      newOne };
+    const sideLabel = () => { stage.innerHTML = document.body.classList.contains('stage') ? '<span class="ico">\u25e8</span><span class="bt">Show left side</span>' : '<span class="ico">\u25e7</span><span class="bt">Hide left side</span>'; };
+    stage.onclick = () => setSide(!document.body.classList.contains('stage'));
+    ui_sideChanged = () => { sideLabel(); setTimeout(() => { if (nv) { nv.render(); if (nv.view === 'scales') nv.buildScales(); } }, 60); };
+    document.body.classList.add('has-tune'); document.getElementById('hideSide').hidden = false;
+    let stageSaved = ''; try { stageSaved = localStorage.getItem('stage') || ''; } catch {}
+    if (stageSaved && !document.body.classList.contains('stage')) document.body.classList.add('stage');
+    sideLabel();
+    full.onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); };
+    syncChanged();
+
+    let lastW = panels.clientWidth, lastH = panels.clientHeight;
+    clearInterval(showTune.timer);
+    showTune.timer = setInterval(() => {
+      if (!nv) return;
+      if (Math.abs(panels.clientWidth - lastW) > 40 || Math.abs(panels.clientHeight - lastH) > 40) { lastW = panels.clientWidth; lastH = panels.clientHeight; nv.render(); }
+      const playing = window.PAC_TEST_TIME != null || (player && player.getPlayerState && player.getPlayerState() === 1);
+      const b = nv.update(videoTime());
+      status.textContent = !videoId ? '' : nv.t0 == null ? (playing ? 'Waiting for 1' : 'Paused') : !playing ? 'Paused' : b === 'pickup' ? 'Pickup' : b ? 'Bar ' + b + ' of ' + nv.barsPerChorus() : 'Intro';
+      // One line that always says what to do next.
+      const next = !videoId ? 'Next: pick a play-along (step 2 on the left).'
+        : nv.t0 == null ? (playing ? 'Hit Space on beat 1 of the melody (the pulsing 1).' : 'Press play (Space), then hit Space on beat 1. Or click any bar when the band gets there.')
+        : playing ? 'Following \u00b7 ' + status.textContent.toLowerCase() + ' \u00b7 out of step? Click any bar when the band gets there.'
+        : 'Paused \u00b7 press Space to carry on.';
+      const line = noteKey + next;
+      if (note.textContent !== line) note.textContent = line;
+      // Buttons that need the video playing are greyed out, and say why.
+      for (const btn of [again, tapLive]) {
+        const off = !playing;
+        if (btn.classList.contains('off') !== off) { btn.classList.toggle('off', off); btn.dataset.tip = off ? 'Start the video first (press play or Space). ' + btn.dataset.tipOn : btn.dataset.tipOn; }
+      }
+    }, 50);
+  }
+
+  // ---------- tooltips: a bubble on every control (hover or keyboard focus) ----------
+  // Uses data-tip (or a title, which is moved to data-tip so the browser's slow bubble doesn't show too).
+  const tipEl = $('div', 'tip'); tipEl.setAttribute('role', 'tooltip'); tipEl.hidden = true; document.body.append(tipEl);
+  let tipTimer = null, tipFor = null;
+  function hideTip() { clearTimeout(tipTimer); tipEl.hidden = true; tipFor = null; }
+  function tipTarget(node) {
+    if (!node || !node.closest) return null;
+    // On the music: chords, notes and bars explain click-to-sync.
+    const mus = node.closest('.pac-paper .abcjs-note, .pac-paper .abcjs-chord, .pac-paper .abcjs-rest, .pac-sbar, .sc-cell');
+    if (mus) { if (!mus.dataset.tip) mus.dataset.tip = 'Click: this bar is now. The chart lines up with the video here.'; return mus; }
+    const el = node.closest('[data-tip], [title]');
+    if (!el) return null;
+    if (el.title) { el.dataset.tip = el.title; el.removeAttribute('title'); }
+    return el.dataset.tip ? el : null;
+  }
+  function placeTip(el) {
+    tipEl.textContent = el.dataset.tip; tipEl.hidden = false;
+    const r = el.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+    let x = r.left + r.width / 2 - tw / 2; x = Math.max(8, Math.min(innerWidth - tw - 8, x));
+    let y = r.bottom + 10, below = true;
+    if (y + th > innerHeight - 8) { y = r.top - th - 10; below = false; }
+    tipEl.style.left = x + 'px'; tipEl.style.top = Math.max(8, y) + 'px';
+    tipEl.classList.toggle('above', !below);
+    tipEl.style.setProperty('--ax', Math.max(12, Math.min(tw - 12, r.left + r.width / 2 - x)) + 'px');
+  }
+  const showTipSoon = (el) => { if (el === tipFor) return; hideTip(); tipFor = el; tipTimer = setTimeout(() => { if (tipFor === el && el.isConnected) placeTip(el); }, 300); };
+  document.addEventListener('pointerover', (e) => { const el = tipTarget(e.target); if (el) showTipSoon(el); else hideTip(); });
+  document.addEventListener('focusin', (e) => { const el = tipTarget(e.target); if (el) showTipSoon(el); });
+  document.addEventListener('focusout', hideTip);
+  document.addEventListener('pointerdown', () => { if (!tipEl.hidden) hideTip(); }, true);
+  window.addEventListener('scroll', hideTip, true);
+
+  // ---------- keys ----------
+  document.addEventListener('keydown', (e) => {
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.repeat) return;
+    if ((e.key === 'Enter' && !/^(BUTTON|A)$/.test(e.target.tagName)) && ui) { ui.hit(); e.preventDefault(); }
+    else if (e.key === ' ' && ui && ui.playing()) { ui.newOne(); e.preventDefault(); } // playing: Space = this is bar 1 (again)
+    else if ((e.key === 'p' || e.key === 'P') && player && player.getPlayerState) { player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo(); e.preventDefault(); }
+    else if ((e.key === 't' || e.key === 'T') && ui) { ui.hit(); e.preventDefault(); }
+    else if ((e.key === 'b' || e.key === 'B') && ui) { ui.tapLive(); e.preventDefault(); }
+    else if ((e.key === 'c' || e.key === 'C') && ui) { ui.count(); e.preventDefault(); }
+    else if ((e.key === 's' || e.key === 'S') && ui) { ui.toggleView(); e.preventDefault(); }
+    else if ((e.key === 'l' || e.key === 'L') && ui) { ui.tapLive(); e.preventDefault(); }
+    else if ((e.key === 'm' || e.key === 'M') && ui) { ui.toggleSide(); e.preventDefault(); }
+    else if ((e.key === 'r' || e.key === 'R') && ui) { ui.reset(); e.preventDefault(); }
+    else if ((e.key === 'k' || e.key === 'K') && ui) { ui.setView('scales'); e.preventDefault(); }
+    else if ((e.key === 'h' || e.key === 'H') && ui) { ui.setView('head'); e.preventDefault(); }
+    else if (e.key === '?' && ui) { ui.help(); e.preventDefault(); }
+    else if (e.key === 'Escape') { hideTip(); }
+    else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && ui) {
+      const dir = e.key === 'ArrowRight' ? 1 : -1;
+      ui.nudge(dir * (e.shiftKey ? ui.beatMs() : 50)); e.preventDefault();
+    }
+    else if ((e.key === '[' || e.key === ']') && ui) { ui.nudge((e.key === ']' ? 1 : -1) * ui.barMs()); e.preventDefault(); }
+    else if (e.key === ' ' && player && player.getPlayerState) { player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo(); e.preventDefault(); }
+  });
+
+  window.addEventListener('blur', () => setTimeout(() => {
+    if (document.activeElement && document.activeElement.tagName === 'IFRAME') { document.activeElement.blur(); window.focus(); }
+  }, 0));
+
+  // ---------- getting a video from YouTube into the page ----------
+  // YouTube doesn't let a page search it without a Google key, so "Find on YouTube" opens the search in a
+  // new tab. Copy the video's link there (address bar or Share > Copy) and come back: the page picks it up.
+  let pendingTune = null;
+  // Returns true when the search shows here (so the YouTube tab isn't opened).
+  function startFind(t) {
+    pendingTune = t.id;
+    if (!videoId) showTune(t, '');
+    const key = store.get('ytKey');
+    if (key) { searchHere(t, key); return true; }
+    askForKey(t);
+    return true;
+  }
+  // No key yet: explain inside the site, let them add one right here, or use a YouTube tab instead.
+  function askForKey(t) {
+    const q = t.names[t.names.length - 1] + ' play along backing track';
+    document.getElementById('findTitle').textContent = 'Play-alongs for ' + t.title;
+    results.textContent = ''; findMsg.textContent = '';
+    const box = $('div', 'nokey');
+    box.innerHTML = '<p style="margin-top:22px">No key yet? It\u2019s free and takes about 5 minutes, once:</p>'
+      + '<ol><li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener">console.cloud.google.com</a> and create a project (any name).</li>'
+      + '<li>APIs &amp; Services \u2192 Library \u2192 search \u201cYouTube Data API v3\u201d \u2192 Enable.</li>'
+      + '<li>Credentials \u2192 Create credentials \u2192 API key. Copy it.</li>'
+      + '<li>Paste it below and press Search. It stays in this browser only.</li></ol>';
+    const row = $('div', 'keyrow');
+    const inp = $('input'); inp.type = 'password'; inp.placeholder = 'Paste your key'; inp.setAttribute('aria-label', 'YouTube API key'); inp.autocomplete = 'off';
+    const go = $('button', 'btn primary', 'Save & search'); go.type = 'button';
+    go.onclick = () => { const v = inp.value.trim(); if (!v) { inp.focus(); return; } store.set('ytKey', v); searchHere(t, v); };
+    inp.onkeydown = (e) => { if (e.key === 'Enter') go.click(); };
+    row.append(inp, go);
+    const alt = $('p', 'fine');
+    const a = $('a', null, 'search on YouTube in a new tab'); a.href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q); a.target = '_blank'; a.rel = 'noopener';
+    alt.append('No key? You can ', a, ' instead: copy a video\u2019s link (Share \u2192 Copy), come back and press \u2318V.');
+    const cloud = $('a', 'btn', 'Open Google Cloud console \u2197'); cloud.href = 'https://console.cloud.google.com/apis/library/youtube.googleapis.com'; cloud.target = '_blank'; cloud.rel = 'noopener';
+    cloud.style.cssText = 'display:inline-block;text-decoration:none;margin:0 0 10px';
+    const pasteP = $('div', 'keyrow'); pasteP.style.marginTop = '14px';
+    const pin = $('input'); pin.type = 'text'; pin.placeholder = 'Or paste a YouTube link here'; pin.setAttribute('aria-label', 'YouTube link');
+    const pgo = $('button', 'btn', 'Load'); pgo.type = 'button';
+    pgo.onclick = () => { if (parseId(pin.value)) { closeFind(); takeLink(pin.value); } else pin.focus(); };
+    pin.onkeydown = (e) => { if (e.key === 'Enter') pgo.click(); };
+    pasteP.append(pin, pgo);
+    box.insertBefore(cloud, box.querySelector('ol').nextSibling);
+    // Key box first: most people come back here with the key already copied.
+    const have = $('p', null); have.innerHTML = '<b>Got your key? Paste it here (it starts with \u201cAIza\u201d):</b>';
+    box.prepend(have, row);
+    box.append(alt, pasteP);
+    results.append(box);
+    modal.hidden = false; inp.focus();
+  }
+
+  // ---------- in-site search: official YouTube Data API v3 ----------
+  const modal = document.getElementById('findModal'), results = document.getElementById('findResults'), findMsg = document.getElementById('findMsg');
+  const decode = (h) => { const ta = document.createElement('textarea'); ta.innerHTML = h || ''; return ta.value; };
+  const closeFind = () => { modal.hidden = true; };
+  document.getElementById('findClose').onclick = closeFind;
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeFind(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeFind(); });
+  async function searchHere(t, key) {
+    const q = t.names[t.names.length - 1] + ' play along backing track';
+    document.getElementById('findTitle').textContent = 'Play-alongs for ' + t.title;
+    results.textContent = ''; findMsg.textContent = 'Searching YouTube\u2026'; modal.hidden = false;
+    document.getElementById('findClose').focus();
+    const cacheKey = 'ytsearch:' + q.toLowerCase();
+    let items = null;
+    const cached = store.get(cacheKey);
+    if (cached && Date.now() - cached.at < 7 * 864e5) items = cached.items; // a week: saves the daily quota
+    if (!items) {
+      try {
+        const u = new URL('https://www.googleapis.com/youtube/v3/search');
+        for (const [k, v] of Object.entries({ part: 'snippet', type: 'video', maxResults: '12', videoEmbeddable: 'true', q, key })) u.searchParams.set(k, v);
+        const r = await fetch(u);
+        const j = await r.json();
+        if (!r.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + r.status));
+        items = (j.items || []).filter((x) => x.id && x.id.videoId).map((x) => ({
+          id: x.id.videoId, title: decode(x.snippet.title), channel: decode(x.snippet.channelTitle),
+          thumb: (x.snippet.thumbnails && (x.snippet.thumbnails.medium || x.snippet.thumbnails.default) || {}).url || ''
+        }));
+        store.set(cacheKey, { at: Date.now(), items });
+      } catch (err) {
+        findMsg.textContent = 'YouTube search didn\u2019t work (' + String(err.message || err).replace(/<[^>]*>/g, '') + '). Check the key under \u2699\ufe0f, or use the YouTube tab instead.';
+        const a = $('a', null, 'Search on YouTube instead'); a.href = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q); a.target = '_blank'; a.rel = 'noopener';
+        findMsg.append(' ', a);
+        return;
+      }
+    }
+    findMsg.textContent = items.length ? 'Click one to load it.' : 'No videos found.';
+    // Videos already tried for this tune are marked; ones marked "Not good" are left out.
+    const tried = store.get('tried:' + t.id) || [], hiddenV = store.get('notgood:' + t.id) || [];
+    let shownN = 0;
+    for (const it of items) {
+      if (hiddenV.includes(it.id)) continue;
+      shownN++;
+      const b = $('button', 'result' + (tried.includes(it.id) ? ' tried' : '') + (it.id === videoId ? ' current' : '')); b.type = 'button';
+      if (it.id === videoId) b.title = 'The video you have now.';
+      else if (tried.includes(it.id)) b.title = 'You tried this one already.';
+      const img = $('img'); img.src = it.thumb; img.alt = ''; img.loading = 'lazy';
+      b.append(img);
+      const badges = $('div', 'badges');
+      const bpm = TuneLibrary.tempoFromTitle(it.title);
+      if (bpm) badges.append($('span', 'badge', bpm + ' bpm'));
+      const k = TuneLibrary.keyFromTitle(it.title);
+      if (k) badges.append($('span', 'badge', 'Key ' + k.letter + (k.acc === -1 ? '\u266d' : k.acc === 1 ? '\u266f' : '') + (k.minor ? ' minor' : '')));
+      if (badges.childNodes.length) b.append(badges);
+      b.append($('b', null, it.title), $('small', null, it.channel));
+      if (it.id === videoId) b.append($('span', 'tag', 'Playing now'));
+      else if (tried.includes(it.id)) b.append($('span', 'tag', 'Tried'));
+      const nope = $('span', 'notgood', '\ud83d\udc4e Not good'); nope.setAttribute('role', 'button'); nope.tabIndex = 0;
+      nope.title = 'Hide this video for this tune from now on.';
+      nope.onclick = (e) => { e.stopPropagation(); const h = store.get('notgood:' + t.id) || []; if (!h.includes(it.id)) h.push(it.id); store.set('notgood:' + t.id, h); b.remove(); };
+      nope.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nope.click(); } };
+      b.append(nope);
+      b.onclick = () => {
+        store.set('tune:' + it.id, t.id);
+        // Same tune, same key as before: keep the key you chose.
+        const keySelNow = document.getElementById('key');
+        if (tune && tune.id === t.id && keySelNow && store.get('key:' + it.id + ':' + t.id) == null) store.set('key:' + it.id + ':' + t.id, +keySelNow.value);
+        lastResultsScroll[t.id] = document.querySelector('.modal-card').scrollTop;
+        pendingTune = null; closeFind(); takeLink(it.id);
+      };
+      results.append(b);
+    }
+    if (!shownN && items.length) findMsg.textContent = 'You\u2019ve hidden all of these. Search on YouTube instead, or clear them with \u201cShow hidden\u201d.';
+    if (hiddenV.length) { const sh = $('button', 'btn small', 'Show hidden (' + hiddenV.length + ')'); sh.type = 'button'; sh.title = 'Bring back the videos you marked Not good.'; sh.onclick = () => { store.set('notgood:' + t.id, []); searchHere(t, key); }; findMsg.append(' ', sh); }
+    const card = document.querySelector('.modal-card');
+    if (lastResultsScroll[t.id] != null) requestAnimationFrame(() => { card.scrollTop = lastResultsScroll[t.id]; });
+  }
+  const lastResultsScroll = {};
+  // "Try another video": stop this one, mark it tried, and go back to the same results (from memory, no new search).
+  function tryAnother() {
+    if (!tune) return;
+    if (videoId) { const tr = store.get('tried:' + tune.id) || []; if (!tr.includes(videoId)) { tr.push(videoId); store.set('tried:' + tune.id, tr); } }
+    if (player && player.pauseVideo) try { player.pauseVideo(); } catch {}
+    startFind(tune);
+  }
+
+  // Key settings (stored only in this browser).
+  const keybox = document.getElementById('keybox'), gear = document.getElementById('gear');
+  gear.onclick = () => { keybox.hidden = !keybox.hidden; gear.setAttribute('aria-expanded', String(!keybox.hidden)); document.getElementById('ytKey').value = store.get('ytKey') || ''; };
+  document.getElementById('saveClaude').onclick = () => {
+    const v = document.getElementById('claudeKey').value.trim();
+    if (v) store.set('claudeKey', v); else { try { localStorage.removeItem('claudeKey'); } catch {} }
+    document.getElementById('claudeMsg').textContent = v ? 'Saved. Charts can be read now.' : 'Key removed.';
+  };
+  document.getElementById('gear').addEventListener('click', () => { document.getElementById('claudeKey').value = store.get('claudeKey') || ''; });
+  document.getElementById('saveKey').onclick = () => {
+    const v = document.getElementById('ytKey').value.trim();
+    if (v) store.set('ytKey', v); else { try { localStorage.removeItem('ytKey'); } catch {} }
+    document.getElementById('keyMsg').textContent = v ? 'Saved. \u201cFind on YouTube\u201d now searches here.' : 'Key removed.';
+  };
+  function takeLink(text) {
+    const id = parseId(text);
+    if (!id || id === videoId) return false;
+    document.getElementById('url').value = 'https://www.youtube.com/watch?v=' + id;
+    loadVideo(id);
+    return true;
+  }
+  window.addEventListener('focus', async () => {
+    if (!pendingTune || !navigator.clipboard || !navigator.clipboard.readText) return;
+    try { const txt = await navigator.clipboard.readText(); if (/youtu/.test(txt)) takeLink(txt); } catch {}
+  });
+  // Paste a YouTube link anywhere on the page (or in the link box) and it loads straight away.
+  document.addEventListener('paste', (e) => {
+    if (readerState && e.clipboardData) {
+      const imgs = [...e.clipboardData.items].filter((it) => it.type.startsWith('image/')).map((it) => it.getAsFile()).filter(Boolean);
+      if (imgs.length) { e.preventDefault(); imgs.forEach((f) => ChartReader.addImageFile(readerState.collector, f)); return; }
+    }
+    const txt = (e.clipboardData && e.clipboardData.getData('text')) || '';
+    if (!/youtu/.test(txt) && !(e.target.id === 'url' && parseId(txt))) return;
+    if (e.target.tagName === 'INPUT' && e.target.id !== 'url') return;
+    if (takeLink(txt)) e.preventDefault();
+  });
+
+  document.getElementById('pasteForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = parseId(document.getElementById('url').value);
+    if (!id) { document.getElementById('vtitle').textContent = 'That doesn’t look like a YouTube link. Copy it from the address bar or the Share button.'; return; }
+    loadVideo(id);
+  });
+
+  drawList(); drawSet(); updateSteps();
+  if (document.fonts && document.fonts.load) document.fonts.load('20px PetalumaScript').then(() => { if (nv) nv.render(); }).catch(() => {});
+  const start = new URL(location.href).searchParams.get('v');
+  if (start) { document.getElementById('url').value = 'https://www.youtube.com/watch?v=' + start; loadVideo(start); }
+})();
+</script>
+</body>
+</html>
