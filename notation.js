@@ -144,7 +144,7 @@
         const W = Math.max(200, p.paper.clientWidth - 10), H = Math.max(150, p.paper.clientHeight - 10);
         if (this.mode === 'fit') {
           let best = null;
-          for (const perLine of [3, 4, 5, 6, 8]) {
+          for (const perLine of [2, 3, 4, 5, 6, 8]) {
             engrave(p.target, p.abc, p.transpose, 165 * perLine, perLine);
             const sz = svgSize(p.target);
             if (!sz) continue;

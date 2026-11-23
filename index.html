@@ -182,7 +182,8 @@ kbd { background: var(--panel2); border: 1px solid var(--line); border-bottom-wi
 
 /* The three parts */
 .pac-npanels { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px 14px 14px; min-height: 0; }
-.pac-npanels[data-view]:not([data-view="all"]) { grid-template-columns: minmax(0, 1fr); }
+.pac-npanels:not([data-view="all"]) { grid-template-columns: minmax(0, 1fr); }
+.pac-npanels[data-n="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pac-npanel { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .pac-label { font: 400 clamp(20px, 1.6vw, 28px)/1 var(--jazz); margin: 0 0 2px 4px; display: flex; align-items: center; gap: 8px; }
 .pac-label::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
@@ -321,6 +322,85 @@ body.stage .perf .only-stage { display: inline-flex; }
 .codebox[hidden] { display: none; }
 .codebox b { font: 400 22px var(--jazz); color: var(--accent2); }
 .codemsg:empty { display: none; }
+/* Compact top bar: the music gets the screen; settings fold into the Controls panel. */
+.perf { position: relative; flex-wrap: nowrap; padding: 6px 12px; }
+.perf .tbox h2 { font-size: clamp(22px, 1.8vw, 32px); }
+.perf .status { font-size: clamp(16px, 1.2vw, 20px); }
+.ctrls { display: none; }
+.perf.open .ctrls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; position: absolute; right: 10px; top: calc(100% + 4px); z-index: 50; background: var(--bg2); border: 1px solid var(--accent); border-radius: 14px; padding: 12px 14px; box-shadow: 0 16px 40px rgba(0,0,0,.55); max-width: min(980px, calc(100vw - 30px)); }
+.ctrls .grp { border-left: 0; padding: 0; }
+.ctrl-toggle[aria-expanded="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+body.roomy .perf { flex-wrap: wrap; }
+body.roomy .ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; position: static; width: 100%; background: none; border: 0; box-shadow: none; padding: 0; }
+body.roomy .ctrl-toggle { display: none; }
+body.roomy .perf.open .ctrls { position: static; box-shadow: none; border: 0; padding: 0; background: none; }
+/* The help line only when there's something to do, small */
+.note { padding: 2px 14px; font-size: 13px; }
+body.has-tune:not(.roomy) .note { display: none; }
+.parts button { min-width: 38px; padding: 8px 10px; }
+.perf .seg button, .perf .btn { white-space: nowrap; }
+.perf .tbox { min-width: 9em; flex: 0 1 auto; }
+.perf .tbox h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1500px) { .perf .seg:not(.parts) button { padding: 8px 9px; } .perf { gap: 6px; } }
+@media (max-width: 1400px) { .perf .spacer { display: none; } }
+/* Hit on 1: one slim row instead of a big card */
+.hero { margin: 6px 12px 0; padding: 6px 12px; gap: 12px; flex-wrap: nowrap; }
+.hero .num { width: 32px; height: 32px; font-size: 22px; }
+.hero-text { flex: 1 1 auto; }
+.hero-text h3 { font-size: clamp(20px, 1.6vw, 28px); margin: 0; }
+.hero-text p { font-size: 14px; }
+.hero-side { flex: 0 1 auto; flex-direction: row; align-items: center; }
+.countin.hit1 { width: auto; padding: 10px 26px; font-size: clamp(24px, 2vw, 34px); }
+.hero-second .or { font-size: 16px; }
+.countin.second { padding: 8px 14px; font-size: 18px; }
+.pac-npanels { padding-top: 6px; }
+.pac-strip { margin-bottom: 4px; }
+.pac-cnow { font-size: clamp(34px, 3.6vw, 70px); }
+/* ===== Room layout (projector / Boxlight) ===== */
+/* Part header on ONE short row: name, chord now, next. */
+.pac-npanel { transition: margin-top .15s; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: 10px; }
+.pac-npanel > .pac-label { grid-column: 1; grid-row: 1; align-self: center; margin: 0 0 2px 4px; }
+.pac-npanel > .pac-strip { grid-column: 2; grid-row: 1; align-self: center; margin: 0 0 2px; min-height: 0; }
+.pac-npanel > .pac-paper, .pac-npanel > .pac-solo, .pac-npanel > .pac-scales { grid-column: 1 / -1; grid-row: 2; }
+.pac-npanel .pac-cnow { font-size: clamp(22px, 2.2vw, 40px); line-height: 1; }
+.pac-npanel .pac-cnext { font-size: clamp(14px, 1.1vw, 20px); }
+body.no-chordbar .pac-npanel > .pac-strip { display: none; }
+/* Touch: big enough to hit. */
+.perf .btn, .perf .seg button, .ctrls .btn, .ctrls select, .ctrls input { min-height: 44px; }
+/* Video: a floating dock over the top-right corner, not a column. The music uses the full width. */
+html body.stage { --vidw: 320px; }
+html body.stage.vid-s { --vidw: 240px; }
+html body.stage.vid-l { --vidw: 480px; }
+html body.stage .main, html body.stage.vid-left .main { padding: 0; }
+body.stage .perf { padding-right: calc(var(--vidw) + 24px); }
+body.stage.vid-left .perf { padding-right: 12px; padding-left: calc(var(--vidw) + 24px); }
+body.stage .side { top: 6px; right: 8px; }
+body.stage.vid-left .side { left: 8px; }
+body.stage #dockCtl { display: none; }
+body.stage .side:hover #dockCtl, body.stage.dock-open #dockCtl { display: flex; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 6px; margin: 0; }
+#dockCtl button { min-height: 40px; }
+.dock-handle { display: none; }
+body.stage .dock-handle { display: block; position: absolute; right: 4px; bottom: -36px; min-height: 32px; font-size: 12px; padding: 4px 10px; background: var(--bg2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+body.stage .side:hover .dock-handle, body.stage.dock-open .dock-handle { display: none; }
+/* Video tucked away (sound keeps going): just a tab. */
+body.stage.vid-tab .side { right: -10000px; left: auto; }
+body.stage.vid-tab .perf { padding-right: 12px; padding-left: 12px; }
+.vidtab { display: none; }
+body.stage.vid-tab.has-tune .vidtab { display: block; position: fixed; right: 0; top: 70px; z-index: 46; writing-mode: vertical-rl; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px 0 0 10px; padding: 12px 8px; font: 700 14px var(--body); cursor: pointer; min-width: 44px; }
+/* Projector mode: only the slim bar and the music. */
+body.projector .perf > :not(.tbox):not(.tb-chord):not(.playbtn):not(.ctrl-toggle):not(.ctrls):not(.proj):not(.again) { display: none !important; }
+body.projector .hero { display: none; }
+@media (max-height: 760px) { .hero-text p, .hero-second { display: none; } .hero .countin.hit1 { padding: 6px 22px; } }
+body.projector .pac-npanel > .pac-strip { display: none; }
+body.projector .pac-npanels { padding: 4px 8px 6px; gap: 8px; }
+body.projector .pac-label { font-size: 17px; }
+body.projector .perf { padding-top: 3px; padding-bottom: 3px; }
+.tb-chord { display: none; }
+body.projector .tb-chord { display: inline-block; font: 400 clamp(20px, 2vw, 34px)/1 var(--jazz); color: var(--fg); white-space: nowrap; padding: 0 6px; }
+body.projector .proj { font-weight: 800; }
+.proj { min-width: 120px; }
+body.projector .note, body.projector .sc-legend { display: none !important; }
+.proj[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.primary kbd { background: rgba(0,0,0,.12); border-color: rgba(0,0,0,.3); color: var(--accent-ink); }
 
 /* Scales view: NOW big on top, slim NEXT line, compact tune map */
@@ -421,6 +501,7 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
 </style>
 </head>
 <body>
+<button class="vidtab" id="vidTab" type="button" title="Bring the video back">▶ Video</button>
 <button class="showside" id="showSide" type="button" title="Show the left column again (M).">◨ Show the left side</button>
 <div class="app">
   <aside class="side">
@@ -481,7 +562,9 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
         <button type="button" data-size="m" title="Medium video (400 px wide)">Medium</button>
         <button type="button" data-size="l" title="Large video (560 px wide)">Large</button>
         <button type="button" data-side="1" title="Move the video to the other side of the screen">⇄ Other side</button>
+        <button type="button" data-size="tab" title="Tuck the video away (the sound keeps playing). A tab on the right edge brings it back.">Hide</button>
       </div>
+      <button class="dock-handle" id="dockHandle" type="button" title="Video size: Small, Medium, Large, other side, or hide it">Video size ▾</button>
       <div class="vtitle" id="vtitle"></div>
       <div class="mismatch" id="mismatch" hidden></div>
     </section>
@@ -945,6 +1028,7 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
 
   // ---------- home: back to the start ----------
   let ui_sideChanged = () => {};
+  let ui_relayout = () => {};
   let ui_autoTempoStop = () => {};
   function goHome() {
     ui_autoTempoStop();
@@ -1032,23 +1116,31 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
   // ---------- hide / show the left side (music full width) ----------
   function setSide(hidden) {
     document.body.classList.toggle('stage', !!hidden);
-    try { localStorage.setItem('stage', hidden ? '1' : ''); } catch {}
+    setTimeout(() => ui_relayout(), 60);
+    try { localStorage.setItem('stage', hidden ? '1' : '0'); } catch {}
     if (ui && ui.sideChanged) ui.sideChanged();
   }
   document.getElementById('hideSide').onclick = () => setSide(true);
   // Docked video: size (Small/Medium/Large) and side, remembered.
   function setDock(size, left) {
     const b = document.body;
-    b.classList.toggle('vid-s', size === 's'); b.classList.toggle('vid-l', size === 'l'); b.classList.toggle('vid-left', !!left);
+    b.classList.toggle('vid-s', size === 's'); b.classList.toggle('vid-l', size === 'l'); b.classList.toggle('vid-tab', size === 'tab'); b.classList.toggle('vid-left', !!left);
+    b.classList.remove('dock-open');
     document.querySelectorAll('#dockCtl [data-size]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.size === size)));
     try { localStorage.setItem('dock', JSON.stringify({ size, left: !!left })); } catch {}
     if (ui && ui.sideChanged) ui.sideChanged();
+    setTimeout(() => ui_relayout(), 60);
   }
-  let dock = { size: 'm', left: false };
+  let dock = { size: 's', left: false };
   try { dock = Object.assign(dock, JSON.parse(localStorage.getItem('dock') || '{}')); } catch {}
   setDock(dock.size, dock.left);
   document.querySelectorAll('#dockCtl [data-size]').forEach((x) => { x.onclick = () => { dock.size = x.dataset.size; setDock(dock.size, dock.left); }; });
   document.querySelector('#dockCtl [data-side]').onclick = () => { dock.left = !dock.left; setDock(dock.size, dock.left); };
+  // Touch has no hover: a tap on "Video size" opens the buttons.
+  document.getElementById('dockHandle').onclick = (e) => { e.stopPropagation(); document.body.classList.toggle('dock-open'); };
+  document.getElementById('vidTab').onclick = () => { dock.size = dock.lastSize || 's'; setDock(dock.size, dock.left); };
+  document.querySelectorAll('#dockCtl [data-size]').forEach((x) => { const f = x.onclick; x.onclick = () => { if (dock.size !== 'tab') dock.lastSize = dock.size; f(); }; });
+  window.PAC_setDock = (size) => { if (size === 'back') size = dock.lastSize || 's'; else if (dock.size !== 'tab') dock.lastSize = dock.size; dock.size = size; setDock(size, dock.left); };
   document.getElementById('showSide').onclick = () => setSide(false);
 
   // ---------- the three steps (left side) ----------
@@ -1158,7 +1250,7 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
       if (!wasLocked) { tlBpm.dataset.locked = '1'; const f = $('div', 'locked', 'Tempo locked: ' + Math.round(r.qpm)); document.body.append(f); setTimeout(() => f.remove(), 950); }
     };
     tapLive.addEventListener('pointerdown', (e) => { e.preventDefault(); tapLiveHit(); });
-    const anotherB = mkBtn('btn', '\u21bb Try another video', 'Go back to the YouTube results for this tune and pick a different play-along.');
+    const anotherB = mkBtn('btn', '\u21bb Other video', 'Go back to the YouTube results for this tune and pick a different play-along.');
     anotherB.onclick = () => tryAnother();
     anotherB.classList.add('only-stage');
     // ----- Auto tempo: listen to the video's sound and keep the tempo (and the beat) locked -----
@@ -1216,11 +1308,91 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
     };
     ui_autoTempoStop = () => atStop();
     const titleBox = $('div', 'tbox'); titleBox.append($('h2', null, t.title), status);
-    head.append(homeB, titleBox, anotherB, $('span', 'spacer'),
-      group('Sync', again, tapLive, autoB, resetTop),
-      group('Sound', keyF, bpmF, speedF),
-      group('View', seg, viewF, stage, full),
-      moreWrap, helpWrap);
+    // Compact (the default): one slim bar, the settings fold into a "Controls" panel that opens over the music.
+    const ctrls = $('div', 'ctrls');
+    ctrls.append(group('Sync', tapLive, autoB, resetTop), group('Sound', keyF, bpmF, speedF), group('View', stage, full), moreWrap, helpWrap);
+    // Parts: show any 1, 2 or 3 (fewer parts = bigger music). Remembered.
+    const partsSeg = $('span', 'seg parts'); partsSeg.setAttribute('role', 'group'); partsSeg.setAttribute('aria-label', 'Parts to show');
+    let shown = ['concert', 'eb', 'bb'];
+    try { const v = JSON.parse(localStorage.getItem('parts') || 'null'); if (Array.isArray(v) && v.length) shown = v.filter((x) => PANELS.includes(x)); } catch {}
+    if (!shown.length) shown = ['concert', 'eb', 'bb'];
+    const partBtns = PANELS.map((inst) => {
+      const b = mkBtn('', Chords.INSTRUMENTS[inst].label === 'Concert' ? 'C' : Chords.INSTRUMENTS[inst].label, 'Show or hide the ' + Chords.INSTRUMENTS[inst].label + ' part. Fewer parts = bigger music.');
+      b.onclick = () => {
+        const on = shown.includes(inst);
+        if (on && shown.length === 1) return; // keep at least one
+        shown = on ? shown.filter((x) => x !== inst) : PANELS.filter((x) => x === inst || shown.includes(x));
+        try { localStorage.setItem('parts', JSON.stringify(shown)); } catch {}
+        applyParts(); ui_relayout(); if (nv.view === 'scales') nv.buildScales();
+      };
+      b.dataset.inst = inst; partsSeg.append(b); return b;
+    });
+    const applyParts = () => {
+      partBtns.forEach((b) => b.setAttribute('aria-pressed', String(shown.includes(b.dataset.inst))));
+      panels.querySelectorAll('.pac-npanel').forEach((el) => { el.hidden = !shown.some((x) => el.classList.contains('pac-' + x)); });
+      panels.dataset.n = String(shown.length);
+      if (shown.length === 3) panels.dataset.view = 'all'; else delete panels.dataset.view;
+    };
+    const playB = mkBtn('btn playbtn', '\u25b6 Play', 'Play / pause the video (P).');
+    playB.onclick = () => { if (player && player.getPlayerState) { player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo(); } };
+    const ctrlB = mkBtn('btn ctrl-toggle', '\u2630 Controls', 'Controls: key, tempo, speed, auto tempo, reset, parts, full screen and more. Opens over the music; press again to fold it away.');
+    ctrlB.setAttribute('aria-expanded', 'false');
+    ctrlB.onclick = (e) => { e.stopPropagation(); const open = !head.classList.contains('open'); head.classList.toggle('open', open); ctrlB.setAttribute('aria-expanded', String(open)); };
+    ctrls.onclick = (e) => e.stopPropagation();
+    document.addEventListener('click', () => { head.classList.remove('open'); ctrlB.setAttribute('aria-expanded', 'false'); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && head.classList.contains('open')) { head.classList.remove('open'); ctrlB.setAttribute('aria-expanded', 'false'); } });
+    const pinB = mkBtn('btn small pin', '\ud83d\udccc Keep open', 'Keep all the controls showing in the top bar (uses more room).');
+    pinB.onclick = () => { const on = !document.body.classList.contains('roomy'); document.body.classList.toggle('roomy', on); pinB.innerHTML = on ? '\u2191 Fold away' : '\ud83d\udccc Keep open'; try { localStorage.setItem('roomy', on ? '1' : ''); } catch {} setTimeout(() => nv && nv.render(), 60); };
+    try { if (localStorage.getItem('roomy')) { document.body.classList.add('roomy'); pinB.innerHTML = '\u2191 Fold away'; } } catch {}
+    ctrls.append(pinB);
+    const projB = mkBtn('btn proj', '\u25a3 Projector', 'Projector: only the music and this slim bar, for showing the band. The video tucks away (the sound keeps playing). Tap again to come back.');
+    projB.onclick = () => {
+      const on = !document.body.classList.contains('projector');
+      document.body.classList.toggle('projector', on); projB.setAttribute('aria-pressed', String(on));
+      if (on) { if (!document.body.classList.contains('stage')) setSide(true); window.PAC_setDock && window.PAC_setDock('tab'); }
+      else if (window.PAC_setDock) window.PAC_setDock('back');
+      try { localStorage.setItem('projector', on ? '1' : ''); } catch {}
+      syncChanged();
+      setTimeout(() => nv && nv.render(), 80);
+    };
+    try { if (localStorage.getItem('projector')) { document.body.classList.add('projector'); projB.setAttribute('aria-pressed', 'true'); if (videoId) { document.body.classList.add('stage'); setTimeout(() => window.PAC_setDock && window.PAC_setDock('tab'), 0); } } } catch {}
+    const chordBarB = mkBtn('btn small', 'Chord names over the parts: on', 'Show or hide the chord name (now / next) above each part.');
+    const setChordBar = (off) => { document.body.classList.toggle('no-chordbar', off); chordBarB.textContent = 'Chord names over the parts: ' + (off ? 'off' : 'on'); try { localStorage.setItem('noChordBar', off ? '1' : ''); } catch {} };
+    chordBarB.onclick = () => { setChordBar(!document.body.classList.contains('no-chordbar')); setTimeout(() => nv && nv.render(), 60); };
+    try { setChordBar(!!localStorage.getItem('noChordBar')); } catch {}
+    // On narrow screens (or big browser zoom), extra controls move into the Controls panel instead of wrapping.
+    const moved = $('div', 'grp moved'); moved.append($('span', 'cap', 'Show'));
+    const movedRow = $('div', 'grp-row'); moved.append(movedRow);
+    ctrls.prepend(moved);
+    ctrls.append(chordBarB);
+    const fitToolbar = () => {
+      const w = head.clientWidth || innerWidth;
+      const narrow = w < 1250, tiny = w < 1000;
+      if (narrow) movedRow.append(anotherB); else head.insertBefore(anotherB, again.nextSibling);
+      if (tiny) { movedRow.append(partsSeg, seg); } else { head.insertBefore(partsSeg, ctrlB); head.insertBefore(seg, ctrlB); }
+      moved.hidden = !movedRow.children.length;
+    };
+    // Projector mode: one small shared now/next chord here instead of one over each part.
+    const tbChord = $('span', 'tb-chord'); tbChord.title = 'The chord now and next (concert pitch).';
+    head.append(homeB, titleBox, tbChord, playB, again, anotherB, $('span', 'spacer'), partsSeg, seg, projB, ctrlB, ctrls);
+    again.classList.add('again');
+    // The floating video must not cover music: the part under it starts just below it.
+    const avoidVideo = () => {
+      const vb = document.getElementById('videoBox').getBoundingClientRect();
+      const showing = document.body.classList.contains('stage') && !document.body.classList.contains('vid-tab') && vb.width > 0;
+      let changed = false;
+      panels.querySelectorAll('.pac-npanel').forEach((el) => {
+        el.style.marginTop = '0px';
+        if (!showing || el.hidden) return;
+        const r = el.getBoundingClientRect();
+        const push = r.left < vb.right && r.right > vb.left ? Math.max(0, Math.round(vb.bottom + 6 - r.top)) : 0;
+        if (push) { el.style.marginTop = push + 'px'; changed = true; }
+      });
+      return changed;
+    };
+    const relayout = () => { fitToolbar(); avoidVideo(); setTimeout(() => nv && nv.render(), 30); };
+    ui_relayout = relayout;
+    requestAnimationFrame(relayout); window.addEventListener('resize', relayout);
 
     // ----- More menu: the rarely used things (nothing here is on the strip too) -----
     const morePop = $('div', 'pop'); morePop.hidden = true;
@@ -1326,6 +1498,7 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
 
     nv = new Notation.NotationView({ abc: t.abc, title: t.title, tempo_bpm: TuneLibrary.tempoFromTitle(title) || t.tempo }, panels, PANELS, Chords.INSTRUMENTS, shift);
     // Click-to-sync: the chart asks us whether the video is playing and what time it is.
+    applyParts();
     nv.now = videoTime;
     nv.isPlaying = () => window.PAC_TEST_TIME != null || !!(player && player.getPlayerState && player.getPlayerState() === 1);
     nv.onSync = (where) => {
@@ -1442,7 +1615,13 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
       count.focus();
     };
     recount.onclick = () => { resetSync(); closePops(); count.focus(); };
-    const syncChanged = () => { hero.hidden = nv.t0 != null; again.hidden = nv.t0 == null; updateSteps(); };
+    const syncChanged = () => {
+      hero.hidden = nv.t0 != null;
+      // Before syncing the big hero row has the button; in Projector mode (no hero) the toolbar button is it.
+      again.hidden = nv.t0 == null && !document.body.classList.contains('projector');
+      again.textContent = nv.t0 == null ? 'Hit on 1' : 'Hit 1 again';
+      updateSteps();
+    };
     ui = { count: countTap, tap: tapBar1, nudge: doNudge, beatMs: () => nv.beatMs(), barMs: () => nv.barMs,
       toggleView: () => setView(nv.view === 'solo' ? 'head' : 'solo'), setView, help: () => togglePop(helpPop, helpB), reset: () => resetTop.click(), toggleSide: () => stage.click(), sideChanged: () => ui_sideChanged(),
       hit: hitOne, synced: () => nv.t0 != null, playing: isPlaying, tapLive: tapLiveHit,
@@ -1452,8 +1631,9 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
     stage.onclick = () => setSide(!document.body.classList.contains('stage'));
     ui_sideChanged = () => { sideLabel(); setTimeout(() => { if (nv) { nv.render(); if (nv.view === 'scales') nv.buildScales(); } }, 60); };
     document.body.classList.add('has-tune'); document.getElementById('hideSide').hidden = false;
-    let stageSaved = ''; try { stageSaved = localStorage.getItem('stage') || ''; } catch {}
-    if (stageSaved && !document.body.classList.contains('stage')) document.body.classList.add('stage');
+    // Playing mode: the left column is out of the way unless you chose to show it (video docks top-right).
+    let stageSaved = null; try { stageSaved = localStorage.getItem('stage'); } catch {}
+    if (stageSaved !== '0' && videoId && !document.body.classList.contains('stage')) document.body.classList.add('stage');
     sideLabel();
     full.onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); };
     syncChanged();
@@ -1471,6 +1651,12 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
         : nv.t0 == null ? (playing ? 'Hit Space on beat 1 of the melody (the pulsing 1).' : 'Press play (Space), then hit Space on beat 1. Or click any bar when the band gets there.')
         : playing ? 'Following \u00b7 ' + status.textContent.toLowerCase() + ' \u00b7 out of step? Click any bar when the band gets there.'
         : 'Paused \u00b7 press Space to carry on.';
+      const pl = playing ? '\u275a\u275a Pause' : '\u25b6 Play'; if (playB.textContent !== pl) playB.textContent = pl;
+      if (document.body.classList.contains('projector') && nv.panels[0]) {
+        const vis = nv.panels.find((pp) => !pp.section.hidden) || nv.panels[0];
+        const tc = vis.now.textContent + (vis.next.textContent && !/waiting/.test(vis.next.textContent) ? '  \u2192 ' + vis.next.textContent.replace(/^next /, '') : '');
+        if (tbChord.textContent !== tc) tbChord.textContent = tc;
+      }
       const line = noteKey + next;
       if (note.textContent !== line) note.textContent = line;
       // Buttons that need the video playing are greyed out, and say why.
@@ -1510,7 +1696,13 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
   document.addEventListener('pointerover', (e) => { const el = tipTarget(e.target); if (el) showTipSoon(el); else hideTip(); });
   document.addEventListener('focusin', (e) => { const el = tipTarget(e.target); if (el) showTipSoon(el); });
   document.addEventListener('focusout', hideTip);
-  document.addEventListener('pointerdown', () => { if (!tipEl.hidden) hideTip(); }, true);
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') { // touch: show what it does for a moment (the tap still works)
+      const el = tipTarget(e.target);
+      if (el) { hideTip(); placeTip(el); tipFor = el; tipTimer = setTimeout(hideTip, 2500); return; }
+    }
+    if (!tipEl.hidden) hideTip();
+  }, true);
   window.addEventListener('scroll', hideTip, true);
 
   // ---------- keys ----------
