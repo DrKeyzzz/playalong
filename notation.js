@@ -369,59 +369,107 @@
     }
 
     // Scales view: a card per chord (built only when shown).
-    // Scales view, built only when shown. NOW (big, the chord being played) on top, a slim NEXT line,
-    // then the tune map: every bar, 4 to a row; click one to look at it.
+    // The chord changes in playing order, consecutive same chords merged: [{ name, start, end }] (ms in the chart).
+    segments(p) {
+      if (p.segs) return p.segs;
+      const segs = [], lo = this.pickupMs, hi = this.pickupMs + this.formMs;
+      p.events.forEach((e, i) => {
+        if (e.milliseconds < lo - 1 || e.milliseconds >= hi - 1) return;
+        const c = p.chordNow[i]; if (!c) return;
+        const last = segs[segs.length - 1];
+        if (last && last.name === c) return;
+        if (last) last.end = e.milliseconds;
+        segs.push({ name: c, start: Math.max(lo, e.milliseconds), end: hi });
+      });
+      if (segs.length) segs[0].start = lo;
+      // the last chord running into the first one on the next chorus: still two cards, that's fine
+      p.segs = segs;
+      return segs;
+    }
+    segAt(p, ms) {
+      const segs = this.segments(p); if (!segs.length) return -1;
+      const inForm = this.pickupMs + (((ms - this.pickupMs) % this.formMs) + this.formMs) % this.formMs;
+      let k = segs.findIndex((g) => inForm >= g.start - 1 && inForm < g.end - 1);
+      return k < 0 ? 0 : k;
+    }
+    lengthText(g) {
+      const beats = Math.max(1, Math.round((g.end - g.start) / this.beatMs())), bpb = this.beatsPerBar();
+      if (beats % bpb === 0) { const b = beats / bpb; return b + (b === 1 ? ' bar' : ' bars'); }
+      return beats + (beats === 1 ? ' beat' : ' beats');
+    }
+
+    // Scales view: a row of 4 cards per part, NOW + the next 3 chord changes, so players can read ahead.
+    // The tune map (every bar; click one) sits below.
     buildScales() {
       for (const p of this.panels) {
-        if (p.scalesBuilt && p.scalesW === p.scales.clientWidth) continue;
+        if (p.scalesBuilt && p.scalesW === p.scales.clientWidth && p.scalesH === p.scales.clientHeight) continue;
         p.scales.textContent = '';
         const div = (cls) => { const d = document.createElement('div'); d.className = cls; return d; };
-        p.scNowBox = div('sc-now'); p.scNextBox = div('sc-nextline'); p.scMap = div('sc-map');
-        p.scBack = document.createElement('button'); p.scBack.type = 'button'; p.scBack.className = 'btn small sc-back'; p.scBack.textContent = 'Back to live'; p.scBack.hidden = true; p.scBack.title = 'Go back to following the chord that\u2019s playing.';
-        p.scBack.onclick = () => { p.pinned = null; p.scBack.hidden = true; p.scShown = null; this.lastIdx = -1; if (this.t0 == null) this.showScale(p, this.firstChord(p), null); };
-        p.scales.append(p.scNowBox, p.scNextBox, p.scMap);
-        p.bigCards = new Map(); p.mapCells = [];
+        p.scRow = div('sc-row'); p.scMap = div('sc-map');
+        p.scBack = document.createElement('button'); p.scBack.type = 'button'; p.scBack.className = 'btn small sc-back'; p.scBack.textContent = 'Back to live'; p.scBack.hidden = true; p.scBack.title = 'Go back to following the music.';
+        p.scBack.onclick = () => { p.pinned = null; p.scBack.hidden = true; p.rowKey = null; this.lastIdx = -1; if (this.t0 == null) this.showRow(p, 0); };
+        p.scales.append(p.scRow, p.scMap);
+        p.slotCards = new Map(); p.mapCells = [];
         const grid = div('sc-mapgrid');
         (p.barLists || []).forEach((list, b) => {
           const cell = document.createElement('button'); cell.type = 'button'; cell.className = 'sc-cell';
           const n = document.createElement('span'); n.className = 'sc-cellnum'; n.textContent = b + 1;
           cell.append(n, list.join(' ') || '–');
-          cell.addEventListener('pointerdown', (ev) => {
-            // Playing: this bar is now. Paused: just look at this bar's scale.
+          cell.addEventListener('pointerdown', () => {
+            // Playing: this bar is now. Paused: look ahead from this bar.
             if (this.isPlaying && this.isPlaying() && this.clickSync([this.pickupMs + b * this.barMs])) { p.pinned = null; p.scBack.hidden = true; return; }
-            if (!list.length) return; p.pinned = list[0]; p.scBack.hidden = false; this.showScale(p, list[0], null, true); this.markMap(p, b); });
+            p.pinned = true; p.scBack.hidden = false; this.showRow(p, this.segAt(p, this.pickupMs + b * this.barMs), true); this.markMap(p, b);
+          });
           grid.append(cell); p.mapCells.push(cell);
         });
-        const mh = div('sc-maphead'); const ml = div('sc-label'); ml.textContent = 'Tune map \u00b7 click a bar';
+        const mh = div('sc-maphead'); const ml = div('sc-label'); ml.textContent = 'Tune map · click a bar';
         mh.append(ml, p.scBack);
         p.scMap.append(mh, grid);
-        p.scalesBuilt = true; p.scalesW = p.scales.clientWidth;
-        p.scShown = null;
-        this.showScale(p, p.pinned || this.firstChord(p), null, !!p.pinned);
+        p.scalesBuilt = true; p.scalesW = p.scales.clientWidth; p.scalesH = p.scales.clientHeight;
+        p.rowKey = null;
+        this.showRow(p, this.t0 == null ? 0 : Math.max(0, p.lastSeg || 0), !!p.pinned);
       }
       this.lastIdx = -1;
     }
-    firstChord(p) { return [...(p.uniq || new Map()).keys()][0]; }
 
-    // Fill NOW with one chord's big card; NEXT gets a one-line heads-up.
-    showScale(p, now, next, picked, barsAway) {
-      if (!p.scNowBox || !now) return;
-      if (p.scShown !== now + (picked ? '*' : '')) {
-        p.scShown = now + (picked ? '*' : '');
-        if (!p.bigCards.has(now)) { const c = scaleCard(now, p.inst, (p.uniq && p.uniq.get(now)) || []); c.rendered = false; p.bigCards.set(now, c); }
-        const big = p.bigCards.get(now);
-        const lab = document.createElement('div'); lab.className = 'sc-label';
-        lab.textContent = picked ? 'Looking at' : this.t0 == null ? 'Bar 1 · waiting for 1' : 'Now';
-        p.scNowBox.replaceChildren(lab, big);
-        if (!big.rendered && big.renderStaff) { big.renderStaff(Math.max(260, p.scNowBox.clientWidth - 8)); big.rendered = true; }
-        big.classList.remove('sc-flash'); void big.offsetWidth; big.classList.add('sc-flash');
+    // Fill the row with the chord at segment k and the next three.
+    showRow(p, k, picked) {
+      const segs = this.segments(p);
+      if (!p.scRow || !segs.length || k < 0) return;
+      const list = [0, 1, 2, 3].map((d) => segs[(k + d) % segs.length]);
+      const key = k + ':' + list.map((g) => g.name).join('|') + (picked ? '*' : '');
+      if (key === p.rowKey) return;
+      const shifted = p.rowKey && p.lastSeg != null && (p.lastSeg + 1) % segs.length === k;
+      p.rowKey = key; p.lastSeg = k;
+      const seen = {};
+      const labels = [picked ? 'Looking at' : this.t0 == null ? 'First chord' : 'Now', 'Next', 'Then', 'Then'];
+      const slots = list.map((g, d) => {
+        const n = (seen[g.name] = (seen[g.name] || 0) + 1);
+        const ck = g.name + '#' + n;
+        if (!p.slotCards.has(ck)) {
+          const box = document.createElement('div'); box.className = 'sc-slot';
+          const head = document.createElement('div'); head.className = 'sc-slothead';
+          const card = scaleCard(g.name, p.inst, []);
+          box.append(head, card); box.card = card; box.head = head; card.rendered = 0;
+          p.slotCards.set(ck, box);
+        }
+        const box = p.slotCards.get(ck);
+        const len = this.lengthText(g), fast = Math.round((g.end - g.start) / this.beatMs()) <= 2;
+        box.head.textContent = '';
+        const l = document.createElement('b'); l.textContent = labels[d];
+        const t = document.createElement('span'); t.textContent = len;
+        box.head.append(l, t);
+        if (fast) { const f = document.createElement('span'); f.className = 'sc-fast'; f.textContent = 'fast'; box.head.append(f); }
+        box.className = 'sc-slot' + (d === 0 ? ' now' : '') + ' d' + d;
+        return box;
+      });
+      p.scRow.replaceChildren(...slots);
+      // staffs sized to their card (only when the card size changed)
+      for (const box of slots) {
+        const w = Math.round(box.clientWidth);
+        if (box.card.renderStaff && w && box.card.rendered !== w) { box.card.renderStaff(w - 8); box.card.rendered = w; }
       }
-      const info = next && scaleInfo(next);
-      p.scNextBox.textContent = '';
-      if (next && next !== now && info && !picked) {
-        const b = document.createElement('b'); b.textContent = next;
-        p.scNextBox.append('Next: ', b, ' · ' + info.root + ' ' + info.name + (barsAway ? ' · in ' + barsAway + (barsAway > 1 ? ' bars' : ' bar') : ''));
-      } else p.scNextBox.append(' ');
+      if (shifted && p.scRow.animate) p.scRow.animate([{ transform: 'translateX(12%)', opacity: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
     }
     markMap(p, bar, nextBar) {
       (p.mapCells || []).forEach((c, i) => { c.classList.toggle('on', i === bar); c.classList.toggle('next', i === nextBar); });
@@ -464,7 +512,7 @@
       this.pickupMs = ((first.vo.getPickupLength && first.vo.getPickupLength()) || 0) * 4 * (60000 / this.qpm);
       // One chorus, from beat 1 of bar 1 to beat 1 of the next chorus, in whole bars.
       this.formMs = Math.max(1, Math.round(((first.total || this.barMs) - this.pickupMs) / this.barMs)) * this.barMs;
-      for (const p of this.panels) this.buildSolo(p);
+      for (const p of this.panels) { p.segs = null; this.buildSolo(p); }
       this.lastBar = null;
       if (this.view === 'scales') this.buildScales();
       this.targetOn = null; this.markTarget();
@@ -609,10 +657,9 @@
           p.on.forEach((el) => el.classList.add('pac-note-on'));
           scrollIntoPanel(p.paper, p.on[0]);
           p.now.textContent = p.chordNow[idx] || '';
-          if (p.scNowBox && this.view === 'scales' && p.chordNow[idx]) {
+          if (p.scRow && this.view === 'scales' && p.chordNow[idx]) {
             const nx = p.chordNext[idx];
-            const away = nx ? Math.max(1, Math.round((nx.ms - ms) / this.barMs)) : 0;
-            if (!p.pinned) this.showScale(p, p.chordNow[idx], nx && nx.name, false, away);
+            if (!p.pinned) this.showRow(p, this.segAt(p, ms));
             const curBar = Math.floor((ms - this.pickupMs) / this.barMs);
             const nb = nx ? Math.floor((nx.ms - this.pickupMs) / this.barMs + 1e-6) % (this.barsPerChorus() || 1) : -1;
             this.markMap(p, curBar, nb !== curBar ? nb : -1);

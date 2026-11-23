@@ -337,9 +337,11 @@ body.roomy .perf.open .ctrls { position: static; box-shadow: none; border: 0; pa
 /* The help line only when there's something to do, small */
 .note { padding: 2px 14px; font-size: 13px; }
 body.has-tune:not(.roomy) .note { display: none; }
+body.has-tune:not(.roomy) .sc-legend { display: none !important; }
 .parts button { min-width: 38px; padding: 8px 10px; }
 .perf .seg button, .perf .btn { white-space: nowrap; }
-.perf .tbox { min-width: 9em; flex: 0 1 auto; }
+.perf > * { flex-shrink: 0; }
+.perf .tbox { min-width: 7em; flex: 0 1 auto; }
 .perf .tbox h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 1500px) { .perf .seg:not(.parts) button { padding: 8px 9px; } .perf { gap: 6px; } }
 @media (max-width: 1400px) { .perf .spacer { display: none; } }
@@ -401,6 +403,31 @@ body.projector .proj { font-weight: 800; }
 .proj { min-width: 120px; }
 body.projector .note, body.projector .sc-legend { display: none !important; }
 .proj[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+/* Scales: NOW + the next 3 changes, so players can read ahead */
+.pac-scales { container-type: size; }
+.sc-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: stretch; flex: 1 1 auto; min-height: 0; }
+@container (max-width: 760px) { .sc-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sc-slot { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.sc-slothead { display: flex; gap: 8px; align-items: baseline; font: 700 12px var(--body); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0 0 3px 2px; }
+.sc-slothead b { color: var(--fg); font-weight: 800; }
+.sc-slot.now .sc-slothead b { color: var(--accent2); }
+.sc-fast { background: #c2410c; color: #fff; border-radius: 5px; padding: 1px 6px; letter-spacing: .06em; }
+.sc-slot .sc-card { flex: 1; display: flex; flex-direction: column; padding: 8px 10px; border-width: 3px; }
+.sc-slot.now .sc-card { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 8px 24px rgba(0,0,0,.35); }
+.sc-slot.d1 .sc-card { opacity: .92; } .sc-slot.d2 .sc-card { opacity: .8; } .sc-slot.d3 .sc-card { opacity: .7; }
+.sc-slot .sc-chord { font-size: clamp(26px, 3.2cqi, 64px); }
+.sc-slot.now .sc-chord { font-size: clamp(30px, 3.8cqi, 76px); }
+.sc-slot .sc-name { font-size: clamp(15px, 1.5cqi, 28px); }
+.sc-slot .sc-notes { font-size: clamp(15px, 1.6cqi, 30px); gap: 2px 10px; }
+.sc-slot .sc-staff { flex: 1; display: flex; align-items: center; min-height: 0; }
+.sc-slot .sc-staff svg { width: 100%; height: auto; max-height: 100%; }
+.sc-slot .sc-foot .btn { min-height: 36px; }
+.pac-scales { display: flex; flex-direction: column; gap: 8px; }
+body.projector .sc-map { display: none; }
+@container (max-height: 520px) { .sc-map { display: none; } }
+/* Short panels (Boxlight zoomed, 3 parts): keep the chord, scale name and staff; drop the extras. */
+@container (max-height: 640px) { .sc-slot .sc-foot { display: none; } }
+@container (max-height: 470px) { .sc-slot .sc-notes { display: none; } .sc-slot .sc-card { padding: 4px 8px; } }
 .btn.primary kbd { background: rgba(0,0,0,.12); border-color: rgba(0,0,0,.3); color: var(--accent-ink); }
 
 /* Scales view: NOW big on top, slim NEXT line, compact tune map */
@@ -1365,11 +1392,14 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
     const movedRow = $('div', 'grp-row'); moved.append(movedRow);
     ctrls.prepend(moved);
     ctrls.append(chordBarB);
+    // Put everything back in the bar, then move things into Controls until the bar fits on one row.
     const fitToolbar = () => {
-      const w = head.clientWidth || innerWidth;
-      const narrow = w < 1250, tiny = w < 1000;
-      if (narrow) movedRow.append(anotherB); else head.insertBefore(anotherB, again.nextSibling);
-      if (tiny) { movedRow.append(partsSeg, seg); } else { head.insertBefore(partsSeg, ctrlB); head.insertBefore(seg, ctrlB); }
+      head.insertBefore(anotherB, again.nextSibling); head.insertBefore(partsSeg, projB); head.insertBefore(seg, projB);
+      const limit = () => head.getBoundingClientRect().right - parseFloat(getComputedStyle(head).paddingRight);
+      const over = () => [...head.children].some((el) => el !== ctrls && el.offsetParent && el.getBoundingClientRect().right > limit() + 1);
+      if (over()) movedRow.append(anotherB);
+      if (over()) movedRow.append(partsSeg);
+      if (over()) movedRow.append(seg);
       moved.hidden = !movedRow.children.length;
     };
     // Projector mode: one small shared now/next chord here instead of one over each part.
@@ -1393,6 +1423,7 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
     const relayout = () => { fitToolbar(); avoidVideo(); setTimeout(() => nv && nv.render(), 30); };
     ui_relayout = relayout;
     requestAnimationFrame(relayout); window.addEventListener('resize', relayout);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitToolbar);
 
     // ----- More menu: the rarely used things (nothing here is on the strip too) -----
     const morePop = $('div', 'pop'); morePop.hidden = true;
@@ -1621,6 +1652,7 @@ body.stage.has-tune .showside { display: flex; position: fixed; left: 0; top: 50
       again.hidden = nv.t0 == null && !document.body.classList.contains('projector');
       again.textContent = nv.t0 == null ? 'Hit on 1' : 'Hit 1 again';
       updateSteps();
+      requestAnimationFrame(fitToolbar);
     };
     ui = { count: countTap, tap: tapBar1, nudge: doNudge, beatMs: () => nv.beatMs(), barMs: () => nv.barMs,
       toggleView: () => setView(nv.view === 'solo' ? 'head' : 'solo'), setView, help: () => togglePop(helpPop, helpB), reset: () => resetTop.click(), toggleSide: () => stage.click(), sideChanged: () => ui_sideChanged(),
